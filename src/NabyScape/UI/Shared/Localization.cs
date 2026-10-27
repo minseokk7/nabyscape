@@ -8,6 +8,7 @@ namespace NabyScape;
 internal static class Localization
 {
     internal static string Language { get; private set; } = "en";
+    internal static CultureInfo DisplayCulture => Language == "ko" ? CultureInfo.GetCultureInfo("ko-KR") : CultureInfo.CurrentCulture;
     internal static void Configure(Settings settings)
     {
         settings.NormalizeLanguageAccessibility();
@@ -18,6 +19,16 @@ internal static class Localization
 
     internal static string Text(string english)
     {
+        if (Language == "ko")
+        {
+            if (LocalizationKoreanCatalog.Entries.TryGetValue(english, out var korean)
+                || LocalizationKoreanSettingsCatalog.Entries.TryGetValue(english, out korean)
+                || LocalizationKoreanRuntimeCatalog.Entries.TryGetValue(english, out korean)
+                || LocalizationKoreanFeaturesCatalog.Entries.TryGetValue(english, out korean)
+                || LocalizationKoreanSharedCatalog.Entries.TryGetValue(english, out korean)
+                || LocalizationKoreanSceneCatalog.Entries.TryGetValue(english, out korean)) return korean;
+            return english;
+        }
         if (!LocalizationCatalog.English.TryGetValue(english, out var entry)) return english;
         return Language switch { "es" when entry.Spanish.Length > 0 => entry.Spanish,
             "id" when entry.Indonesian.Length > 0 => entry.Indonesian, _ => english };

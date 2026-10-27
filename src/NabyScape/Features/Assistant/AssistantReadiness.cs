@@ -26,8 +26,8 @@ internal sealed partial class AssistantRuntime
         if(chat==null || string.IsNullOrWhiteSpace(chat.BaseUrl) || string.IsNullOrWhiteSpace(chat.Model))
             return new(false,false,"Choose a chat connection","Add an API provider or connect Hermes, then save a chat model.");
         else if(connectionChecks.TryGetValue(chat.Id,out var check) && check.Configuration==ConnectionIdentity(chat))
-            return new(true,check.Success,check.Success?"Ready · chat checked":"Connection needs attention",$"{check.Detail}\nChecked {check.Checked:HH:mm} on this device. Voice and tools are checked separately.");
-        return new(true,false,"Saved · not tested",chat.Name+" · "+chat.Model+"\nCheck the saved connection to confirm this model can reply.");
+            return new(true,check.Success,check.Success?"Ready · chat checked":"Connection needs attention",Localization.Format("{0}\nChecked {1:HH:mm} on this device. Voice and tools are checked separately.",Localization.Text(check.Detail),check.Checked));
+        return new(true,false,"Saved · not tested",Localization.Format("{0} · {1}\nCheck the saved connection to confirm this model can reply.",chat.Name,chat.Model));
     }
     private AssistantSetupReadiness AssessSetup()
     {
@@ -39,7 +39,7 @@ internal sealed partial class AssistantRuntime
         {
             var provider=VoiceProvider;
             bool configured=provider!=null && !string.IsNullOrWhiteSpace(provider.RealtimeUrl) && !string.IsNullOrWhiteSpace(provider.RealtimeModel);
-            speech=new(configured,false,configured?"Saved · voice not tested":"Choose a voice connection",configured?"The saved realtime model is "+provider!.RealtimeModel+". Start a conversation to connect; the microphone is off until then.":"Choose automatic local speech, your own models, or a realtime provider. Voice is optional.");
+            speech=new(configured,false,configured?"Saved · voice not tested":"Choose a voice connection",configured?Localization.Format("The saved realtime model is {0}. Start a conversation to connect; the microphone is off until then.",provider!.RealtimeModel):"Choose automatic local speech, your own models, or a realtime provider. Voice is optional.");
         }
         else if(!text.Configured)speech=new(false,false,"A chat model is still needed","Local speech listens and speaks on this PC. An API provider or Hermes generates the reply.");
         else if(local.Managed)
@@ -48,7 +48,7 @@ internal sealed partial class AssistantRuntime
             {
                 var asr=AssistantOwnSpeech.Asr(local);var tts=AssistantOwnSpeech.Tts(local);
                 bool installed=Speech.Installed(asr,tts,local.ManagedGpu);
-                speech=new(installed,false,installed?"Installed · speech not tested":"Finish local speech setup",installed?asr.Name+" + "+tts.Name+"\nFiles and engines are present. Hardware is checked again when you start voice.":"Install the selected pack or prepare your model files in Voice setup.");
+                speech=new(installed,false,installed?"Installed · speech not tested":"Finish local speech setup",installed?Localization.Format("{0} + {1}\nFiles and engines are present. Hardware is checked again when you start voice.",asr.Name,tts.Name):"Install the selected pack or prepare your model files in Voice setup.");
             }
             catch(Exception){speech=new(false,false,"Check your model files","Open Voice setup to select valid listening and speaking models and prepare their engines.");}
         }

@@ -9,11 +9,11 @@ using System.Windows.Media.Imaging;
 namespace NabyScape;
 internal sealed partial class AssistantProviderSettings
 {
-    private readonly TextBlock imageCheckStatus=UI.Text("Image support: not tested. Turning Image input on does not verify model support.",11,UI.Muted);
+    private readonly TextBlock imageCheckStatus=UI.Text(Localization.Text("Image support: not tested. Turning Image input on does not verify model support."),11,UI.Muted);
     private void BuildImageCheck(Panel panel)
     {
-        var test=AssistantWindow.Pill("Test image support",()=>_=TestImageSupport());UI.Named(test,"Test image support");panel.Children.Add(test);panel.Children.Add(imageCheckStatus);
-        panel.Children.Add(UI.Text("Sends a generated color sample to the saved provider. No personal image is sent. This may use provider credits; Hermes may run an agent task. Image replies are a separate capability.",10,UI.Muted));
+        var test=AssistantWindow.Pill("Test image support",()=>_=TestImageSupport());UI.LocalizedName(test,"Test image support");panel.Children.Add(test);panel.Children.Add(imageCheckStatus);
+        panel.Children.Add(UI.Text(Localization.Text("Sends a generated color sample to the saved provider. No personal image is sent. This may use provider credits; Hermes may run an agent task. Image replies are a separate capability."),10,UI.Muted));
     }
     internal static string ImageTestData()
     {
@@ -29,7 +29,7 @@ internal sealed partial class AssistantProviderSettings
         try
         {
             var candidate=ReadFields();candidate.Tools=false;candidate.ImageOutput=false;
-            request=providerRequest=new();request.CancelAfter(TimeSpan.FromSeconds(45));SetProviderBusy(true);imageCheckStatus.Text="Checking image understanding…";
+            request=providerRequest=new();request.CancelAfter(TimeSpan.FromSeconds(45));SetProviderBusy(true);imageCheckStatus.Text=Localization.Text("Checking image understanding…");
             using var api=new AssistantTransport();var reply=await api.Complete(candidate,ai.Keys.Read(saved.Id),new[]{new AssistantMessage("user","Name the dominant color of the attached image. Reply with one color word only.",ImageTestData())},Array.Empty<AssistantTool>(),request.Token);
             if(request!=providerRequest)return;
             bool recognized=reply.Text.Trim().Trim('.','!',' ').Equals("red",StringComparison.OrdinalIgnoreCase);

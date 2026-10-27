@@ -15,9 +15,9 @@ public sealed partial class SettingsWindow
     });
     private void UpdatesSection()
     {
-        var auto=new CheckBox{Content=Localization.Text("Check automatically once per day"),IsChecked=app.Settings.AutoCheckUpdates};UI.Named(auto,Localization.Text("Check automatically once per day"));auto.Click+=(_,_)=>{app.Settings.AutoCheckUpdates=auto.IsChecked==true;Save();};auto.ToolTip=Localization.Text("Check once at normal startup when the last attempt was at least 24 hours ago.");
-        var download=new CheckBox{Content=Localization.Text("Download updates automatically"),IsChecked=app.Settings.AutoDownloadUpdates};UI.Named(download,Localization.Text("Download updates automatically"));download.Click+=(_,_)=>{app.Settings.AutoDownloadUpdates=download.IsChecked==true;Save();};
-        updateStatus=UI.Text(Localization.Text(app.Updates.Status),12,UI.Muted);UI.Named(updateStatus,Localization.Text("Update status"));
+        var auto=new CheckBox{Content=Localization.Text("Check automatically once per day"),IsChecked=app.Settings.AutoCheckUpdates};UI.LocalizedName(auto,"Check automatically once per day");auto.Click+=(_,_)=>{app.Settings.AutoCheckUpdates=auto.IsChecked==true;Save();};auto.ToolTip=Localization.Text("Check once at normal startup when the last attempt was at least 24 hours ago.");
+        var download=new CheckBox{Content=Localization.Text("Download updates automatically"),IsChecked=app.Settings.AutoDownloadUpdates};UI.LocalizedName(download,"Download updates automatically");download.Click+=(_,_)=>{app.Settings.AutoDownloadUpdates=download.IsChecked==true;Save();};
+        updateStatus=UI.Text(Localization.Text(app.Updates.Status),12,UI.Muted);UI.LocalizedName(updateStatus,"Update status");
         page.Children.Add(Section("Updates",UI.Text(Localization.Text("Installed:")+" "+OfficialUpdates.InstalledVersion+" · "+RuntimePlatform.Rid,13),
             UI.Caption("Check for a release, download it, then choose when to install and restart.",12),auto,download,
             UI.Caption("Automatic downloads are optional and may use a metered connection. They follow automatic startup checks; installation always waits for you.",11,UI.Muted),updateStatus,

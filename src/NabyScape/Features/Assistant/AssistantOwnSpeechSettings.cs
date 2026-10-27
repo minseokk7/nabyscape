@@ -13,22 +13,22 @@ internal sealed partial class AssistantProviderSettings
     private FrameworkElement OwnSpeechSettings(ComboBox mode)
     {
         var original=ai.Options.LocalVoice;var service=ai.Speech;var p=new StackPanel();
-        p.Children.Add(UI.Heading("Use your own model files",16));
-        p.Children.Add(UI.Text("Choose models already on your PC. Files stay in their current location; Naby saves their paths. Only missing speech engines may need downloading.",11,UI.Muted));
+        p.Children.Add(UI.Heading(Localization.Text("Use your own model files"),16));
+        p.Children.Add(UI.Text(Localization.Text("Choose models already on your PC. Files stay in their current location; Naby saves their paths. Only missing speech engines may need downloading."),11,UI.Muted));
         var asr=new ComboBox{ItemsSource=AssistantOwnSpeech.AsrEngines,SelectedItem=original.OwnAsrEngine};if(asr.SelectedIndex<0)asr.SelectedIndex=1;Label(p,"Listening model format",asr);
         var installedAsr=new ComboBox{ItemsSource=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(SpeechCatalog.Asr,service.HasAsrWeights))};var asrInstalledField=new StackPanel();Label(asrInstalledField,"Installed listening pack",installedAsr);p.Children.Add(asrInstalledField);
         installedAsr.SelectedItem=System.Linq.Enumerable.FirstOrDefault(installedAsr.Items.Cast<SpeechAsrModel>(),a=>a.Id==original.ManagedAsr);if(installedAsr.SelectedIndex<0 && installedAsr.Items.Count>0)installedAsr.SelectedIndex=0;
-        var asrPath=UI.Input("Select a listening model",original.OwnAsrPath);var asrRow=PathRow(asrPath,()=>asr.SelectedItem as string=="Whisper GGML file","Whisper GGML (*.bin)|*.bin");var asrFileField=new StackPanel();Label(asrFileField,"Listening model file or folder",asrRow);p.Children.Add(asrFileField);
+        var asrPath=UI.Input(Localization.Text("Select a listening model"),original.OwnAsrPath);var asrRow=PathRow(asrPath,()=>asr.SelectedItem as string=="Whisper GGML file","Whisper GGML (*.bin)|*.bin");var asrFileField=new StackPanel();Label(asrFileField,"Listening model file or folder",asrRow);p.Children.Add(asrFileField);
         var tts=new ComboBox{ItemsSource=AssistantOwnSpeech.TtsEngines,SelectedItem=original.OwnTtsEngine};if(tts.SelectedIndex<0)tts.SelectedIndex=1;Label(p,"Speaking model format",tts);
         var installedTts=new ComboBox{ItemsSource=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(SpeechCatalog.Tts,service.HasTtsWeights))};var ttsInstalledField=new StackPanel();Label(ttsInstalledField,"Installed speaking pack",installedTts);p.Children.Add(ttsInstalledField);
         installedTts.SelectedItem=System.Linq.Enumerable.FirstOrDefault(installedTts.Items.Cast<SpeechTtsModel>(),t=>t.Id==original.ManagedTts);if(installedTts.SelectedIndex<0 && installedTts.Items.Count>0)installedTts.SelectedIndex=0;
-        var ttsPath=UI.Input("Select a speaking model",original.OwnTtsPath);var ttsRow=PathRow(ttsPath,()=>tts.SelectedItem as string=="Piper ONNX file","Piper model (*.onnx)|*.onnx");var ttsFileField=new StackPanel();Label(ttsFileField,"Speaking model file or folder",ttsRow);p.Children.Add(ttsFileField);
+        var ttsPath=UI.Input(Localization.Text("Select a speaking model"),original.OwnTtsPath);var ttsRow=PathRow(ttsPath,()=>tts.SelectedItem as string=="Piper ONNX file","Piper model (*.onnx)|*.onnx");var ttsFileField=new StackPanel();Label(ttsFileField,"Speaking model file or folder",ttsRow);p.Children.Add(ttsFileField);
         string[] codes={"en","es","fr","de","pt","it","ja","ko","ru","ar","nl","tr","hi","vi","id"};var language=new ComboBox{ItemsSource=new[]{"English","Spanish","French","German","Portuguese","Italian","Japanese","Korean","Russian","Arabic","Dutch","Turkish","Hindi","Vietnamese","Indonesian"},SelectedIndex=Math.Max(0,Array.IndexOf(codes,original.SpeechLanguage))};Label(p,"Conversation language · must match your models",language);
-        var speaker=UI.Input("Speaker ID",original.OwnSpeaker.ToString());speaker.MaxLength=3;Label(p,"Speaker ID · 0 for the default voice",speaker);
-        var gpu=new CheckBox{Content=UI.Text("Use NVIDIA GPU for Whisper when available · CPU fallback included",11),IsChecked=original.ManagedGpu,Margin=new(0,12,0,8)};p.Children.Add(gpu);
-        var help=UI.Text("",10,UI.Muted);help.Margin=new(0,10,0,8);p.Children.Add(new Expander{Header="Supported file layouts",Content=help,IsExpanded=true});
-        p.Children.Add(UI.Text("An arbitrary ONNX, GGUF or safetensors file cannot run with every engine. Choose the matching exported format and support files. Model memory use and accuracy cannot be confirmed from the folder alone. For another runtime, use External ASR + TTS.",10,UI.Muted));
-        var result=UI.Text("No models selected yet.",11,UI.Muted);result.Margin=new(0,10,0,8);p.Children.Add(result);var buttons=new WrapPanel();var check=AssistantWindow.Pill("Check files",()=>{});var prepare=AssistantWindow.Pill("Prepare engines & use models",()=>{},true);var cancel=AssistantWindow.Pill("Cancel setup",service.Cancel);buttons.Children.Add(check);buttons.Children.Add(prepare);buttons.Children.Add(cancel);p.Children.Add(buttons);
+        var speaker=UI.Input(Localization.Text("Speaker ID"),original.OwnSpeaker.ToString());speaker.MaxLength=3;Label(p,"Speaker ID · 0 for the default voice",speaker);
+        var gpu=new CheckBox{Content=UI.Text(Localization.Text("Use NVIDIA GPU for Whisper when available · CPU fallback included"),11),IsChecked=original.ManagedGpu,Margin=new(0,12,0,8)};p.Children.Add(gpu);
+        var help=UI.Text("",10,UI.Muted);help.Margin=new(0,10,0,8);p.Children.Add(new Expander{Header=Localization.Text("Supported file layouts"),Content=help,IsExpanded=true});
+        p.Children.Add(UI.Text(Localization.Text("An arbitrary ONNX, GGUF or safetensors file cannot run with every engine. Choose the matching exported format and support files. Model memory use and accuracy cannot be confirmed from the folder alone. For another runtime, use External ASR + TTS."),10,UI.Muted));
+        var result=UI.Text(Localization.Text("No models selected yet."),11,UI.Muted);result.Margin=new(0,10,0,8);p.Children.Add(result);var buttons=new WrapPanel();var check=AssistantWindow.Pill("Check files",()=>{});var prepare=AssistantWindow.Pill("Prepare engines & use models",()=>{},true);var cancel=AssistantWindow.Pill("Cancel setup",service.Cancel);buttons.Children.Add(check);buttons.Children.Add(prepare);buttons.Children.Add(cancel);p.Children.Add(buttons);
         bool working=false,subscribed=false;
         AssistantLocalVoiceOptions Read()
         {
@@ -74,15 +74,15 @@ internal sealed partial class AssistantProviderSettings
             help.Text=listen+"\n\n"+speak;
         }
         void Changed(){if(subscribed)Dispatcher.BeginInvoke(()=>{if(subscribed && p.IsVisible){if(working)result.Text=service.Status;Refresh();}});}
-        check.Click+=(_,_)=>{try{Read();result.Text="Required file structure checked. This does not run inference or prove model compatibility. Prepare engines & use models to save.";}catch(Exception ex){result.Text=ex.Message;}};
+        check.Click+=(_,_)=>{try{Read();result.Text=Localization.Text("Required file structure checked. This does not run inference or prove model compatibility. Prepare engines & use models to save.");}catch(Exception ex){result.Text=ex.Message;}};
         async Task Use()
         {
             if(working || service.Busy)return;
             try
             {
-                var next=Read();working=true;ai.StopSession();Refresh();result.Text="Preparing the required engines. Your model weights are not downloaded or modified.";
+                var next=Read();working=true;ai.StopSession();Refresh();result.Text=Localization.Text("Preparing the required engines. Your model weights are not downloaded or modified.");
                 if(!await service.PrepareOwn(next)){result.Text=service.Status;return;}
-                ai.UseOwnSpeech(next);RefreshEnabled();Feedback("Your local speech models are saved and selected.");result.Text="Your models are selected. Open Voice mode → Start conversation when ready.";
+                ai.UseOwnSpeech(next);RefreshEnabled();Feedback("Your local speech models are saved and selected.");result.Text=Localization.Text("Your models are selected. Open Voice mode → Start conversation when ready.");
             }
             catch(Exception ex){result.Text="Could not use these models: "+ex.Message;Feedback(result.Text,true);}
             finally{working=false;Refresh();}
@@ -98,8 +98,8 @@ internal sealed partial class AssistantProviderSettings
         {
             try
             {
-                if(isFile()){var dialog=new OpenFileDialog{Title="Choose local speech model",Filter=filter,CheckFileExists=true};if(dialog.ShowDialog(Window.GetWindow(this))==true)input.Text=dialog.FileName;}
-                else{var dialog=new OpenFolderDialog{Title="Choose extracted speech model folder",Multiselect=false};if(dialog.ShowDialog(Window.GetWindow(this))==true)input.Text=dialog.FolderName;}
+                if(isFile()){var dialog=new OpenFileDialog{Title=Localization.Text("Choose local speech model"),Filter=filter,CheckFileExists=true};if(dialog.ShowDialog(Window.GetWindow(this))==true)input.Text=dialog.FileName;}
+                else{var dialog=new OpenFolderDialog{Title=Localization.Text("Choose extracted speech model folder"),Multiselect=false};if(dialog.ShowDialog(Window.GetWindow(this))==true)input.Text=dialog.FolderName;}
             }
             catch(Exception ex){speechStatus.Text="Could not choose the model: "+ex.Message;}
         });browse.Margin=new(8,0,0,0);Grid.SetColumn(browse,1);row.Children.Add(browse);return row;

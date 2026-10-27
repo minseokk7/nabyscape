@@ -85,7 +85,40 @@ internal static class ProductionFoundationTests
         {
             var s=new Settings{UiLanguage="invalid",AccessibilityTextScale=double.NaN,AccessibilityHighContrast=true};s.Normalize();
             Assert(s.UiLanguage=="en" && s.AccessibilityTextScale==1 && s.AccessibilityHighContrast,"Invalid accessibility preferences were not normalized.");
-            foreach(string language in new[]{"es","id","en"}){s.UiLanguage=language;s.AccessibilityTextScale=9;s.Normalize();Assert(s.UiLanguage==language && s.AccessibilityTextScale==1.5,"Valid language or text scale bound changed.");}
+            foreach(string language in new[]{"es","id","en","ko"}){s.UiLanguage=language;s.AccessibilityTextScale=9;s.Normalize();Assert(s.UiLanguage==language && s.AccessibilityTextScale==1.5,"Valid language or text scale bound changed.");}
+        });
+        test("Korean catalog covers the base captions and preserves format arguments",()=>
+        {
+            string previous=Localization.Language;
+            try
+            {
+                Localization.Configure(new Settings{UiLanguage="ko"});
+                Assert(LocalizationCatalog.English.Keys.All(LocalizationKoreanCatalog.Entries.ContainsKey),"Korean base catalog has missing captions.");
+                var catalogs=new[]{LocalizationKoreanCatalog.Entries,LocalizationKoreanSettingsCatalog.Entries,LocalizationKoreanRuntimeCatalog.Entries,LocalizationKoreanFeaturesCatalog.Entries,LocalizationKoreanSharedCatalog.Entries,LocalizationKoreanSceneCatalog.Entries};
+                foreach(var catalog in catalogs)foreach(var entry in catalog)
+                {
+                    Assert(entry.Value.Length>0,"Korean caption is blank: "+entry.Key);
+                    var source=System.Text.CompositeFormat.Parse(entry.Key);
+                    var translated=System.Text.CompositeFormat.Parse(entry.Value);
+                    Assert(source.MinimumArgumentCount==translated.MinimumArgumentCount,"Format argument count changed: "+entry.Key);
+                    var arguments=Enumerable.Range(0,source.MinimumArgumentCount).Select(index=>(object)(index+1)).ToArray();
+                    _=string.Format(System.Globalization.CultureInfo.InvariantCulture,translated,arguments);
+                }
+                Assert(Localization.Text("Settings")=="설정","Korean catalog is not connected.");
+                Assert(Localization.Format("Version {0} is available.","9.8.7").Contains("9.8.7",StringComparison.Ordinal),"Dynamic version was lost.");
+                Assert(Localization.Text("Untranslated user text") == "Untranslated user text","Fallback altered content.");
+                Assert(UI.Text("Settings").Text=="Settings","User content was translated.");
+            }
+            finally{Localization.Configure(new Settings{UiLanguage=previous});}
+        });
+        Fixture("Korean language persists across Store reload without changing note content",store=>
+        {
+            store.Save("settings",new Settings{UiLanguage="ko"});
+            store.Save("productivity",new ProductivityData{Note="Settings · 내 메모"});
+            var reopened=new Store(store.DirectoryPath);
+            var settings=reopened.Load<Settings>("settings");settings.Normalize();
+            Assert(settings.UiLanguage=="ko","Korean language did not survive reload.");
+            Assert(reopened.Load<ProductivityData>("productivity").Note=="Settings · 내 메모","User content changed during locale reload.");
         });
     }
 }

@@ -94,7 +94,7 @@ internal sealed class DetachedPreviewWindow : Window
     internal DetachedPreviewWindow(App app,string kind,Action openMain)
     {
         this.app=app;this.kind=kind;
-        Title="NabyScape · "+NameFor(kind);Width=350;Height=330;MinWidth=280;MinHeight=220;
+        Title="NabyScape · "+Localization.Text(NameFor(kind));Width=350;Height=330;MinWidth=280;MinHeight=220;
         WindowStyle=WindowStyle.None;ResizeMode=ResizeMode.CanResize;ShowInTaskbar=true;Topmost=false;Background=UI.Brush("#101114");Foreground=Brushes.White;
         FontFamily=new FontFamily("Segoe UI Variable Text, Segoe UI");UseLayoutRounding=true;
         WindowChrome.SetWindowChrome(this,new WindowChrome{CaptionHeight=0,ResizeBorderThickness=new(6),CornerRadius=new(16),GlassFrameThickness=new(0),UseAeroCaptionButtons=false});
@@ -104,8 +104,8 @@ internal sealed class DetachedPreviewWindow : Window
         {var button=UI.Button(name,action);button.Content=Icons.Create(symbol=="×"?"x":"minus",13);button.Width=28;button.Height=28;button.MinHeight=28;button.Padding=new(0);button.Margin=new(2,0,0,0);button.ToolTip=name;button.FontSize=14;button.Background=Brushes.Transparent;button.BorderThickness=new(0);WindowChrome.SetIsHitTestVisibleInChrome(button,true);DockPanel.SetDock(button,Dock.Right);return button;}
         header.Children.Add(WindowButton("×","Close "+NameFor(kind)+" · Alt+F4",Close));
         header.Children.Add(WindowButton("−","Minimize "+NameFor(kind),()=>WindowState=WindowState.Minimized));
-        var pin=new CheckBox{Content="On top",IsChecked=false,Foreground=UI.Muted,VerticalAlignment=VerticalAlignment.Center,FontSize=10,MinHeight=28,Margin=new(8,0,6,0),ToolTip="Keep this mini window above other apps"};pin.Style=(Style)app.FindResource("SettingsSwitch");UI.Named(pin,"Always on top");pin.Checked+=(_,_)=>Topmost=true;pin.Unchecked+=(_,_)=>Topmost=false;DockPanel.SetDock(pin,Dock.Right);header.Children.Add(pin);
-        var handle=UI.Heading(NameFor(kind),13);handle.FontWeight=FontWeights.SemiBold;handle.Cursor=Cursors.SizeAll;handle.ToolTip="Drag to move · Alt+Space for window controls";header.Children.Add(handle);
+        var pin=new CheckBox{Content=Localization.Text("On top"),IsChecked=false,Foreground=UI.Muted,VerticalAlignment=VerticalAlignment.Center,FontSize=10,MinHeight=28,Margin=new(8,0,6,0),ToolTip=Localization.Text("Keep this mini window above other apps")};pin.Style=(Style)app.FindResource("SettingsSwitch");UI.LocalizedName(pin,"Always on top");pin.Checked+=(_,_)=>Topmost=true;pin.Unchecked+=(_,_)=>Topmost=false;DockPanel.SetDock(pin,Dock.Right);header.Children.Add(pin);
+        var handle=UI.Heading(Localization.Text(NameFor(kind)),13);handle.FontWeight=FontWeights.SemiBold;handle.Cursor=Cursors.SizeAll;handle.ToolTip=Localization.Text("Drag to move · Alt+Space for window controls");header.Children.Add(handle);
         header.MouseLeftButtonDown+=(_,e)=>{if(e.OriginalSource is not DependencyObject target || IsControl(target,header))return;if(e.ClickCount==1){BeginPointerDrag();e.Handled=true;}};
         view=new(app,kind,openMain);layout.Children.Add(view.Content);
         var lighting=new IslandSurface{Fill=Brushes.Transparent,IsHitTestVisible=false,Notch=false,Radius=16};

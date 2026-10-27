@@ -9,7 +9,7 @@ public sealed partial class OverlayWindow
     private readonly StackPanel peekClipboard=new(),peekTasks=new();
     private string clipboardPeekKey="",tasksPeekKey="";
     private FrameworkElement BuildToolPeek(string id)
-    {var page=new StackPanel();page.Children.Add(UI.Heading(id=="clips"?"Clipboard":"Tasks",13));page.Children.Add(id=="clips"?peekClipboard:peekTasks);var open=PlainPeekButton("Open all "+id,()=>{ShowTools(id);});open.Content=id=="clips"?"Open clipboard":"All tasks";open.FontSize=11;open.Margin=new(0,5,0,0);page.Children.Add(open);return page;}
+    {var page=new StackPanel();page.Children.Add(UI.Heading(Localization.Text(id=="clips"?"Clipboard":"Tasks"),13));page.Children.Add(id=="clips"?peekClipboard:peekTasks);var open=PlainPeekButton("Open all "+id,()=>{ShowTools(id);});open.Content=Localization.Text(id=="clips"?"Open clipboard":"All tasks");open.FontSize=11;open.Margin=new(0,5,0,0);page.Children.Add(open);return page;}
     private void UpdateToolPeeks()
     {
         if(!peekInitialized)return;
@@ -18,8 +18,8 @@ public sealed partial class OverlayWindow
         if(peekId=="clips" && clips!=clipboardPeekKey)
         {
             clipboardPeekKey=clips;peekClipboard.Children.Clear();
-            if(!p.ClipboardEnabled)peekClipboard.Children.Add(UI.Text("History is off. Enable it in Settings → Controls.",11,UI.Muted));
-            else if(p.Clips.Count==0)peekClipboard.Children.Add(UI.Text("Nothing captured yet",11,UI.Muted));
+            if(!p.ClipboardEnabled)peekClipboard.Children.Add(UI.Text(Localization.Text("History is off. Enable it in Settings → Controls."),11,UI.Muted));
+            else if(p.Clips.Count==0)peekClipboard.Children.Add(UI.Text(Localization.Text("Nothing captured yet"),11,UI.Muted));
             else foreach(var clip in p.Clips.Take(2))
             {
                 var row=new DockPanel{Height=28};
@@ -37,7 +37,7 @@ public sealed partial class OverlayWindow
                 var toggle=new CheckBox{Content=label,Tag=task,IsChecked=task.Done,Style=(Style)FindResource("TaskToggle"),Height=28,Margin=new(0)};UI.Named(toggle,"Preview task "+task.Id);
                 toggle.Click+=(_,_)=>{task.Done=toggle.IsChecked==true;p.Save();};peekTasks.Children.Add(toggle);
             }
-            if(p.Tasks.Count==0)peekTasks.Children.Add(UI.Text("No tasks yet. Add one in Tools → Tasks.",11,UI.Muted));
+            if(p.Tasks.Count==0)peekTasks.Children.Add(UI.Text(Localization.Text("No tasks yet. Add one in Tools → Tasks."),11,UI.Muted));
         }
         foreach(var toggle in peekTasks.Children.OfType<CheckBox>())if(toggle.Tag is TaskItem task){toggle.IsChecked=task.Done;((TextBlock)toggle.Content).TextDecorations=task.Done?TextDecorations.Strikethrough:null;}
         foreach(var list in new[]{peekTasks,peekClipboard})for(int i=0;i<list.Children.Count;i++)list.Children[i].Visibility=i==0 || peekDetailed?Visibility.Visible:Visibility.Collapsed;

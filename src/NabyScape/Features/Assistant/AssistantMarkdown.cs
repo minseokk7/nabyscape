@@ -23,7 +23,7 @@ internal static class AssistantMarkdown
         bool fenced=false;var code=new StringBuilder();
         void Code()
         {
-            var box=UI.Input("Code block",code.ToString().TrimEnd());box.IsReadOnly=true;box.AcceptsReturn=true;box.TextWrapping=TextWrapping.Wrap;box.FontFamily=new FontFamily("Cascadia Mono, Consolas");box.FontSize=11;box.MaxHeight=240;box.VerticalScrollBarVisibility=ScrollBarVisibility.Auto;box.Background=UI.Brush("#171B22");box.BorderThickness=new(0);box.Padding=new(10);box.Margin=new(0,7,0,9);page.Children.Add(box);code.Clear();
+            var box=UI.Input(Localization.Text("Code block"),code.ToString().TrimEnd());box.IsReadOnly=true;box.AcceptsReturn=true;box.TextWrapping=TextWrapping.Wrap;box.FontFamily=new FontFamily("Cascadia Mono, Consolas");box.FontSize=11;box.MaxHeight=240;box.VerticalScrollBarVisibility=ScrollBarVisibility.Auto;box.Background=UI.Brush("#171B22");box.BorderThickness=new(0);box.Padding=new(10);box.Margin=new(0,7,0,9);page.Children.Add(box);code.Clear();
         }
         foreach(string raw in text.Replace("\r","").Split('\n').Take(600))
         {

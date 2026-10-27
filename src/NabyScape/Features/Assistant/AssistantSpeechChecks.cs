@@ -14,12 +14,12 @@ internal sealed partial class AssistantProviderSettings
     private Action? testSelectedMicrophone;
     private FrameworkElement SpeechChecks()
     {
-        var body=new StackPanel();body.Children.Add(UI.Text("Tests use your saved setup. Microphone tests record four seconds on this PC; transcription is sent only to your configured speech service, never to the chat model. Play sample speaks a fixed sentence. Nothing is added to chat or saved as an audio file.",11,UI.Muted));
-        var feedback=UI.Text("Not tested on this visit.",11,UI.Muted);Accessibility.Live(feedback);var actions=new WrapPanel();CancellationTokenSource? pending=null;
+        var body=new StackPanel();body.Children.Add(UI.Text(Localization.Text("Tests use your saved setup. Microphone tests record four seconds on this PC; transcription is sent only to your configured speech service, never to the chat model. Play sample speaks a fixed sentence. Nothing is added to chat or saved as an audio file."),11,UI.Muted));
+        var feedback=UI.Text(Localization.Text("Not tested on this visit."),11,UI.Muted);Accessibility.Live(feedback);var actions=new WrapPanel();CancellationTokenSource? pending=null;
         async Task Run(string kind)
         {
-            if(pending!=null || ai.SpeechCheckBusy || ai.Speech.Busy || ai.VoiceConnected || ai.Busy){feedback.Text="End the current conversation and finish model setup before testing.";return;}
-            if(kind!="microphone" && !ai.Options.LocalVoice.Enabled){feedback.Text="Realtime voice is tested by Start conversation. These individual tests need a saved local or external ASR/TTS setup.";return;}
+            if(pending!=null || ai.SpeechCheckBusy || ai.Speech.Busy || ai.VoiceConnected || ai.Busy){feedback.Text=Localization.Text("End the current conversation and finish model setup before testing.");return;}
+            if(kind!="microphone" && !ai.Options.LocalVoice.Enabled){feedback.Text=Localization.Text("Realtime voice is tested by Start conversation. These individual tests need a saved local or external ASR/TTS setup.");return;}
             pending=new();pending.CancelAfter(TimeSpan.FromMinutes(3));
             try
             {
@@ -37,7 +37,7 @@ internal sealed partial class AssistantProviderSettings
         foreach(var item in new[]{("Test microphone","microphone"),("Test transcription","transcription"),("Play sample","sample")}){string kind=item.Item2;actions.Children.Add(AssistantWindow.Pill(item.Item1,()=>_=Run(kind)));}
         actions.Children.Add(AssistantWindow.Pill("Cancel test",()=>pending?.Cancel()));body.Children.Add(actions);body.Children.Add(feedback);
         testSelectedMicrophone=()=>_=Run("microphone");
-        body.Unloaded+=(_,_)=>pending?.Cancel();body.IsVisibleChanged+=(_,_)=>{if(!body.IsVisible)pending?.Cancel();};var expander=new Expander{Header="Test microphone & speech",Content=body,Margin=new(0,12,0,8)};UI.Named(expander,"Speech checks");return expander;
+        body.Unloaded+=(_,_)=>pending?.Cancel();body.IsVisibleChanged+=(_,_)=>{if(!body.IsVisible)pending?.Cancel();};var expander=new Expander{Header=Localization.Text("Test microphone & speech"),Content=body,Margin=new(0,12,0,8)};UI.LocalizedName(expander,"Speech checks");return expander;
     }
 }
 internal sealed partial class LocalAssistantVoice

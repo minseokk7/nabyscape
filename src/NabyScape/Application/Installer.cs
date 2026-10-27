@@ -23,32 +23,33 @@ internal static class Installer
             catch(Exception ex) {File.WriteAllText(Path.Combine(Path.GetDirectoryName(Environment.ProcessPath)!,"install-error.txt"),ex.ToString());Environment.ExitCode=1;}
             return;
         }
+        Localization.Configure(new Store().Load<Settings>("settings"));
         var application=new Application();application.Resources.MergedDictionaries.Add(new ResourceDictionary{Source=new Uri("/NabyScape;component/Theme.xaml",UriKind.Relative)});
         application.Run(CreateWindow(args));
     }
     internal static Window CreateWindow(string[] args)
     {
-        var window=new Window{Title="Install NabyScape · "+RuntimePlatform.Rid,Width=620,Height=535,ResizeMode=ResizeMode.NoResize,WindowStartupLocation=WindowStartupLocation.CenterScreen};
+        var window=new Window{Title=Localization.Format("Install NabyScape · {0}",RuntimePlatform.Rid),Width=620,Height=535,ResizeMode=ResizeMode.NoResize,WindowStartupLocation=WindowStartupLocation.CenterScreen};
         window.Icon=System.Windows.Media.Imaging.BitmapFrame.Create(new Uri("pack://application:,,,/Assets/island.ico"));window.SourceInitialized+=(_,_)=>Native.DarkTitleBar(window);
-        var panel=new StackPanel{Margin=new(36)};panel.Children.Add(UI.Text("NabyScape",36,UI.Brush("#B4F272")));panel.Children.Add(UI.Text("A little space. More possibilities.",15,UI.Muted));
-        panel.Children.Add(new Border{Height=26});panel.Children.Add(UI.Text("Music, focus, and your everyday tools — always close.\n\nInstalls for this Windows user only. Choose your folder and startup preference below.",14));
-        var folderLabel=UI.Text("Install folder",12,UI.Muted);folderLabel.Margin=new(0,20,0,6);panel.Children.Add(folderLabel);
+        var panel=new StackPanel{Margin=new(36)};panel.Children.Add(UI.Caption("NabyScape",36,UI.Brush("#B4F272")));panel.Children.Add(UI.Caption("A little space. More possibilities.",15,UI.Muted));
+        panel.Children.Add(new Border{Height=26});panel.Children.Add(UI.Caption("Music, focus, and your everyday tools — always close.\n\nInstalls for this Windows user only. Choose your folder and startup preference below.",14));
+        var folderLabel=UI.Caption("Install folder",12,UI.Muted);folderLabel.Margin=new(0,20,0,6);panel.Children.Add(folderLabel);
         string suggested=string.Equals(InstallDirectory,InstallPaths.Legacy,StringComparison.OrdinalIgnoreCase)?InstallPaths.Default:InstallDirectory;
-        var folder=new TextBox{Text=InstallPaths.FromArguments(args,suggested),MinHeight=36,VerticalContentAlignment=VerticalAlignment.Center};UI.Named(folder,"Installation folder");
+        var folder=new TextBox{Text=InstallPaths.FromArguments(args,suggested),MinHeight=36,VerticalContentAlignment=VerticalAlignment.Center};UI.LocalizedName(folder,"Installation folder");
         var row=new DockPanel{Margin=new(0,0,0,6)};
-        var browse=UI.Button("Browse…",()=>
+        var browse=UI.CaptionButton("Browse…",()=>
         {
-            var picker=new OpenFolderDialog{Title="Choose where to install NabyScape"};
+            var picker=new OpenFolderDialog{Title=Localization.Text("Choose where to install NabyScape")};
             if(picker.ShowDialog(window)==true)folder.Text=string.Equals(Path.GetFileName(picker.FolderName),"NabyScape",StringComparison.OrdinalIgnoreCase)?picker.FolderName:Path.Combine(picker.FolderName,"NabyScape");
         });DockPanel.SetDock(browse,Dock.Right);row.Children.Add(browse);row.Children.Add(folder);panel.Children.Add(row);
-        var state=UI.Text("Choose a location you can write to. Your personal settings are kept separately.",11,UI.Muted);state.Margin=new(0,0,0,12);panel.Children.Add(state);
-        var startupChoice=new CheckBox{Content="Start NabyScape with Windows",IsChecked=HasSavedPreferences?StartupService.Enabled():FactoryDefaults.Create().AutoStart,Margin=new(0,0,0,8)};panel.Children.Add(startupChoice);
-        var launch=new CheckBox{Content="Open NabyScape after installation",IsChecked=true};panel.Children.Add(launch);
-        var button=UI.Button("Install NabyScape",()=>{},true);button.Click+=(_,_)=>
+        var state=UI.Caption("Choose a location you can write to. Your personal settings are kept separately.",11,UI.Muted);state.Margin=new(0,0,0,12);panel.Children.Add(state);
+        var startupChoice=new CheckBox{Content=Localization.Text("Start NabyScape with Windows"),IsChecked=HasSavedPreferences?StartupService.Enabled():FactoryDefaults.Create().AutoStart,Margin=new(0,0,0,8)};panel.Children.Add(startupChoice);
+        var launch=new CheckBox{Content=Localization.Text("Open NabyScape after installation"),IsChecked=true};panel.Children.Add(launch);
+        var button=UI.CaptionButton("Install NabyScape",()=>{},true);button.Click+=(_,_)=>
         {
             button.IsEnabled=false;
             try {string target=InstallPaths.Validate(folder.Text.Trim());Install(target,startupChoice.IsChecked==true);if(launch.IsChecked==true)Launch(target);window.Close();}
-            catch(Exception ex) {state.Text="Installation failed: "+ex.Message;button.IsEnabled=true;}
+            catch(Exception ex) {state.Text=Localization.Format("Installation failed: {0}",ex.Message);button.IsEnabled=true;}
         };panel.Children.Add(button);window.Content=panel;return window;
     }
     private static void Launch(string folder)=>Process.Start(new ProcessStartInfo(Path.Combine(folder,"NabyScape.exe")){UseShellExecute=true});

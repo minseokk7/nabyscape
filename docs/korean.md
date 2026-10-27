@@ -1,0 +1,42 @@
+# NabyScape 한국어판
+
+이 작업본은 NabyScape 2.24.0의 Windows 앱에 한국어(`ko`)를 추가합니다.
+기존 영어·스페인어·인도네시아어 선택과 저장 데이터 형식은 유지합니다.
+
+## 한국어 적용
+
+1. NabyScape를 실행하고 트레이 아이콘에서 **Settings**를 엽니다.
+2. **General → Language & accessibility → Interface language**에서 **한국어**를 선택합니다.
+3. **Save language and accessibility**를 누릅니다.
+4. 트레이의 **Quit(종료)**로 완전히 종료한 뒤 다시 실행합니다.
+
+한국어 선택은 사용자 설정에 저장되어 다음 실행에도 유지됩니다.
+설정 창만 닫으면 앱이 계속 실행되므로 언어 변경 적용에는 완전한 종료가 필요합니다.
+기존 설치의 설정을 강제로 덮어쓰거나 메모·작업·API 키를 바꾸지 않습니다.
+공식 원본 버전으로 업데이트하면 이 작업본의 한국어 추가 사항이 교체될 수 있습니다.
+
+## 번역 범위
+
+- 설정 탐색, 검색, 설명, 선택 항목과 접근성 이름
+- 처음 실행 안내, 트레이 메뉴와 앱 알림
+- 음악·가사·타이머·집중·스톱워치·메모·작업·클립보드·달력 등 앱 UI
+- AI 연결·음성·모델 설정과 앱에서 생성하는 상태 문구
+
+곡명·가사 본문·파일명·메모·사용자가 지정한 이름·AI 답변·외부 서비스의 오류 상세는 원문을 보존합니다.
+브랜드·모델 ID·단축키·프로토콜·기술 약어도 필요한 경우 원문을 사용합니다.
+웹사이트와 기존 영문 사용자 설명서는 이번 앱 한글화 범위에 포함하지 않습니다.
+
+## 개발 및 검증
+
+.NET 10 SDK와 Windows 환경에서 다음 명령으로 검사할 수 있습니다.
+
+```powershell
+./build.ps1 -OutputDirectory artifacts
+./artifacts/NabyScape.exe --diagnostics ./verification/ko --isolated-diagnostics --korean-ui-only
+./artifacts/NabyScape.exe --diagnostics ./verification/accessibility --isolated-diagnostics --production-ui-only
+```
+
+한국어 전용 UI 검사는 별도 진단 프로필에서 실제 언어 선택·저장 버튼을 실행하고,
+설정 재로딩·한국어 검색·설정 페이지와 위젯 렌더링을 확인합니다.
+진단 스크린샷은 해당 실행의 `ko-*.png`, 결과는 `integration-report.txt`에 저장됩니다.
+외부 AI 계정 연결, 실제 음성 인식·합성, 음악 재생 등은 별도의 실제 환경 검증이 필요합니다.

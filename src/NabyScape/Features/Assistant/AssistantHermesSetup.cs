@@ -19,19 +19,19 @@ internal sealed partial class AssistantProviderSettings
     private FrameworkElement HermesSetup()
     {
         var saved=ai.Options.Providers.FirstOrDefault(p=>p.Backend=="Hermes");
-        var p=new StackPanel();p.Children.Add(UI.Heading("Your Hermes, inside Naby",16));p.Children.Add(UI.Text("Naby handles chat, voice and the window/display you choose to share. Your Hermes agent keeps its own skills, memory, tools and permissions.",11,UI.Muted));
-        Label(p,"1 · Enable API server in Hermes",UI.Text("Open Hermes → API server, enable it, and set an API_SERVER_KEY for your profile. Start or restart the gateway with hermes gateway. Your model/provider must already be configured in Hermes. Webhooks are for external events.",11,UI.Muted));
+        var p=new StackPanel();p.Children.Add(UI.Heading(Localization.Text("Your Hermes, inside Naby"),16));p.Children.Add(UI.Text(Localization.Text("Naby handles chat, voice and the window/display you choose to share. Your Hermes agent keeps its own skills, memory, tools and permissions."),11,UI.Muted));
+        Label(p,"1 · Enable API server in Hermes",UI.Text(Localization.Text("Open Hermes → API server, enable it, and set an API_SERVER_KEY for your profile. Start or restart the gateway with hermes gateway. Your model/provider must already be configured in Hermes. Webhooks are for external events."),11,UI.Muted));
         p.Children.Add(AssistantWindow.Pill("Copy gateway setup template",()=>Clipboard.SetText("API_SERVER_ENABLED=true\nAPI_SERVER_KEY=<your-own-long-random-key>\n\n# Start or restart after saving the profile .env:\nhermes gateway")));
         p.Children.Add(AssistantWindow.Pill("Open Hermes API setup guide",()=>Process.Start(new ProcessStartInfo("https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server/"){UseShellExecute=true})));
-        var address=UI.Input("Hermes API address",saved?.BaseUrl??"http://127.0.0.1:8642/v1/");address.MaxLength=2048;Label(p,"2 · Paste your Hermes API address",address);
-        p.Children.Add(UI.Text("Same PC: http://127.0.0.1:8642/v1/. Remote server: use its public HTTPS address, or forward its port to localhost. Naby does not install or start Hermes for you.",10,UI.Muted));
-        var profile=UI.Input("Optional Hermes profile name","");profile.MaxLength=64;Label(p,"Profile · optional",profile);p.Children.Add(UI.Text("Leave empty for the default profile or a complete profile URL. With shared multi-profile routing enabled in Hermes, a name adds /p/name/v1/. Use that profile’s own key. Separate profile ports can also be pasted directly.",10,UI.Muted));
+        var address=UI.Input(Localization.Text("Hermes API address"),saved?.BaseUrl??"http://127.0.0.1:8642/v1/");address.MaxLength=2048;Label(p,"2 · Paste your Hermes API address",address);
+        p.Children.Add(UI.Text(Localization.Text("Same PC: http://127.0.0.1:8642/v1/. Remote server: use its public HTTPS address, or forward its port to localhost. Naby does not install or start Hermes for you."),10,UI.Muted));
+        var profile=UI.Input(Localization.Text("Optional Hermes profile name"),"");profile.MaxLength=64;Label(p,"Profile · optional",profile);p.Children.Add(UI.Text(Localization.Text("Leave empty for the default profile or a complete profile URL. With shared multi-profile routing enabled in Hermes, a name adds /p/name/v1/. Use that profile’s own key. Separate profile ports can also be pasted directly."),10,UI.Muted));
         var secret=new PasswordBox{MaxLength=2000};hermesPassword=secret;Label(p,"API_SERVER_KEY · from Hermes, not the underlying LLM provider",secret);
-        p.Children.Add(UI.Text("An existing saved key is kept only for the exact same Hermes address/profile. Keys stay in Windows Credential Manager; they are not put in chat or copied by the setup template.",10,UI.Muted));
+        p.Children.Add(UI.Text(Localization.Text("An existing saved key is kept only for the exact same Hermes address/profile. Keys stay in Windows Credential Manager; they are not put in chat or copied by the setup template."),10,UI.Muted));
         var agent=new ComboBox{IsEditable=true,IsTextSearchEnabled=true,Text=saved?.Model??"hermes-agent"};Label(p,"3 · Check the server and choose its advertised agent",agent);
-        var images=new CheckBox{Content=UI.Text("Allow the window/display images I choose to share",11),IsChecked=saved?.Vision==true,Margin=new(0,12,0,8)};p.Children.Add(images);
-        p.Children.Add(UI.Text("Image understanding depends on the model configured in Hermes. The agent/model list is not a list of all underlying LLMs; change the agent’s LLM in Hermes.",10,UI.Muted));
-        var result=UI.Text("Not connected yet. Check server reads metadata only; it does not start an agent task.",11,UI.Muted);result.Margin=new(0,8,0,8);p.Children.Add(result);
+        var images=new CheckBox{Content=UI.Text(Localization.Text("Allow the window/display images I choose to share"),11),IsChecked=saved?.Vision==true,Margin=new(0,12,0,8)};p.Children.Add(images);
+        p.Children.Add(UI.Text(Localization.Text("Image understanding depends on the model configured in Hermes. The agent/model list is not a list of all underlying LLMs; change the agent’s LLM in Hermes."),10,UI.Muted));
+        var result=UI.Text(Localization.Text("Not connected yet. Check server reads metadata only; it does not start an agent task."),11,UI.Muted);result.Margin=new(0,8,0,8);p.Children.Add(result);
         var buttons=new WrapPanel();var check=AssistantWindow.Pill("Check server",()=>{});var connect=AssistantWindow.Pill("Connect & use Hermes",()=>{},true);buttons.Children.Add(check);buttons.Children.Add(connect);p.Children.Add(buttons);
         CancellationTokenSource? pending=null;
         string BaseUrl()
@@ -54,11 +54,11 @@ internal sealed partial class AssistantProviderSettings
             {
                 string endpoint=BaseUrl();var old=Existing(endpoint);string? token=secret.Password.Length>0?secret.Password:old==null?null:ai.Keys.Read(old.Id);
                 if(string.IsNullOrWhiteSpace(token))throw new InvalidOperationException("Enter the API_SERVER_KEY from this Hermes profile.");
-                result.Text="Checking Hermes address, key and advertised agents…";var candidate=AssistantProviderCatalog.Create("Hermes Agent");candidate.BaseUrl=endpoint;
+                result.Text=Localization.Text("Checking Hermes address, key and advertised agents…");var candidate=AssistantProviderCatalog.Create("Hermes Agent");candidate.BaseUrl=endpoint;
                 using var api=new AssistantTransport();string[] models=await api.Models(candidate,token,pending.Token);if(models.Length==0)throw new InvalidOperationException("Server returned no agent/model IDs. Check its API server setup.");
                 string typed=agent.Text.Trim();agent.ItemsSource=models;agent.Text=models.Contains(typed)?typed:models.Length==1?models[0]:"";result.Text=$"Server available · {models.Length} agent(s). Choose one, then Connect & use Hermes. No chat or tool task was started.";return true;
             }
-            catch(OperationCanceledException){result.Text="Connection check stopped or timed out. Check the gateway address and whether Hermes is running.";return false;}
+            catch(OperationCanceledException){result.Text=Localization.Text("Connection check stopped or timed out. Check the gateway address and whether Hermes is running.");return false;}
             catch(Exception ex){result.Text="Could not connect: "+ex.Message;return false;}
             finally{pending?.Dispose();pending=null;check.IsEnabled=connect.IsEnabled=address.IsEnabled=profile.IsEnabled=secret.IsEnabled=agent.IsEnabled=true;}
         }
@@ -78,10 +78,10 @@ internal sealed partial class AssistantProviderSettings
                     catch{ai.Options.Providers.Remove(candidate);ai.Options.SelectedProvider=previous;ai.Keys.Remove(candidate.Id);throw;}
                     ai.SelectProvider(candidate.Id);
                 }
-                ai.Options.Enabled=true;app.Store.Save("assistant",ai.Options);secret.Clear();Reload(candidate.Id);RefreshEnabled();Feedback("Hermes connection saved · selected for chat.");result.Text="Hermes selected for chat. Return to Naby to start. For spoken replies, choose a local speech pack in Voice setup.";app.Notify("Hermes connected","Your agent is selected for Naby chat.");
+                ai.Options.Enabled=true;app.Store.Save("assistant",ai.Options);secret.Clear();Reload(candidate.Id);RefreshEnabled();Feedback("Hermes connection saved · selected for chat.");result.Text=Localization.Text("Hermes selected for chat. Return to Naby to start. For spoken replies, choose a local speech pack in Voice setup.");app.Notify("Hermes connected","Your agent is selected for Naby chat.");
             }
             catch(Exception ex){result.Text="Could not save Hermes connection: "+ex.Message;Feedback(result.Text,true);}
         };
-        p.Unloaded+=(_,_)=>{pending?.Cancel();secret.Clear();};hermesSetup=new Expander{Header="Connect Hermes · guided setup",Content=p,Margin=new(0,12,0,10)};return hermesSetup;
+        p.Unloaded+=(_,_)=>{pending?.Cancel();secret.Clear();};hermesSetup=new Expander{Header=Localization.Text("Connect Hermes · guided setup"),Content=p,Margin=new(0,12,0,10)};return hermesSetup;
     }
 }

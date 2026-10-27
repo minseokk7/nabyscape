@@ -22,7 +22,7 @@ internal sealed partial class AssistantView : UserControl,IDisposable
     private readonly TextBlock status=UI.Caption("",11,UI.Muted);
     private readonly StackPanel messages=new();
     private readonly ScrollViewer transcript;
-    private readonly TextBox input=UI.Input("Message AI companion","");
+    private readonly TextBox input=UI.Input(Localization.Text("Message AI companion"),"");
     private readonly Button send,share,stop,clear,attach;
     private readonly WrapPanel draftFiles=new(){Orientation=Orientation.Horizontal};
     private AssistantAttachment[] shownFiles=Array.Empty<AssistantAttachment>();
@@ -145,13 +145,13 @@ internal sealed partial class AssistantView : UserControl,IDisposable
     }
     private static Button IconAction(string name,string icon,Action action,bool primary=false)
     {
-        var button=Icons.Button(icon,name,action,primary,32);button.MinWidth=32;button.Margin=new(3,0,0,0);button.Padding=new(0);button.Content=Icons.Create(icon,18,primary?Brushes.Black:Brushes.White);button.HorizontalContentAlignment=HorizontalAlignment.Center;button.VerticalContentAlignment=VerticalAlignment.Center;button.Tag=new CornerRadius(primary?16:8);if(!primary)button.Background=Brushes.Transparent;return button;
+        var button=Icons.Button(icon,Localization.Text(name),action,primary,32);button.MinWidth=32;button.Margin=new(3,0,0,0);button.Padding=new(0);button.Content=Icons.Create(icon,18,primary?Brushes.Black:Brushes.White);button.HorizontalContentAlignment=HorizontalAlignment.Center;button.VerticalContentAlignment=VerticalAlignment.Center;button.Tag=new CornerRadius(primary?16:8);if(!primary)button.Background=Brushes.Transparent;return button;
     }
     private async System.Threading.Tasks.Task Send()
     {string text=input.Text.Trim();if(text.Length==0 && ai.DraftFiles.Count==0 || ai.Busy || ai.ImportingFiles)return;int generation=ai.Conversation.Epoch;input.Clear();bool success=await ai.Send(text);if(!success && generation==ai.Conversation.Epoch && input.Text.Length==0)input.Text=text;}
     private void PickFiles()
     {
-        var dialog=new Microsoft.Win32.OpenFileDialog{Title="Attach files to Naby",Multiselect=true,CheckFileExists=true,Filter="Supported attachments|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.webp;*.pdf;*.mp4;*.webm;*.mov;*.mkv;*.avi;*.mp3;*.wav;*.m4a;*.ogg;*.flac;*.docx;*.pptx;*.xlsx;*.odt;*.txt;*.md;*.csv;*.tsv;*.json;*.xml;*.py;*.cs;*.js;*.ts;*.log|All files|*.*"};
+        var dialog=new Microsoft.Win32.OpenFileDialog{Title=Localization.Text("Attach files to Naby"),Multiselect=true,CheckFileExists=true,Filter="Supported attachments|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.webp;*.pdf;*.mp4;*.webm;*.mov;*.mkv;*.avi;*.mp3;*.wav;*.m4a;*.ogg;*.flac;*.docx;*.pptx;*.xlsx;*.odt;*.txt;*.md;*.csv;*.tsv;*.json;*.xml;*.py;*.cs;*.js;*.ts;*.log|All files|*.*"};
         if(dialog.ShowDialog(Window.GetWindow(this))==true)_=ai.AttachFiles(dialog.FileNames);
     }
     private void RefreshSendState()
@@ -189,7 +189,7 @@ internal sealed partial class AssistantView : UserControl,IDisposable
             if(!shownFiles.SequenceEqual(ai.DraftFiles)){draftFiles.Children.Clear();shownFiles=ai.DraftFiles.ToArray();foreach(var file in shownFiles)draftFiles.Children.Add(new AssistantAttachmentView(ai,file,true));}
             draftFiles.IsEnabled=!ai.Busy && !ai.ImportingFiles;
             draftFiles.Visibility=ai.Busy?Visibility.Collapsed:Visibility.Visible;
-            share.ToolTip=ai.Desktop.Sharing?"Stop sharing "+ai.Desktop.SourceName:"Share a window or display";if(ai.Desktop.Sharing){share.SetResourceReference(Control.BackgroundProperty,"SelectionFill");share.SetResourceReference(Control.ForegroundProperty,"SelectionText");}else{share.Background=Brushes.Transparent;share.SetResourceReference(Control.ForegroundProperty,"ControlText");}
+            share.ToolTip=ai.Desktop.Sharing?Localization.Format("Stop sharing {0}",ai.Desktop.SourceName):Localization.Text("Share a window or display");if(ai.Desktop.Sharing){share.SetResourceReference(Control.BackgroundProperty,"SelectionFill");share.SetResourceReference(Control.ForegroundProperty,"SelectionText");}else{share.Background=Brushes.Transparent;share.SetResourceReference(Control.ForegroundProperty,"ControlText");}
             screenPreview.Header="Sharing · "+ai.Desktop.SourceName;screenPreview.Visibility=ai.Desktop.Sharing?Visibility.Visible:Visibility.Collapsed;
             bool restoring=restoreScroll,bottom=restoring?followLatest:transcript.ScrollableHeight-transcript.VerticalOffset<30;
             var history=ai.Conversation.Messages;
@@ -203,7 +203,7 @@ internal sealed partial class AssistantView : UserControl,IDisposable
                 var message=history[i];if(message.Role is not ("user" or "assistant") || string.IsNullOrWhiteSpace(message.Text) && message.Attachments is not {Count:>0} || message.Text.StartsWith("Updated shared screen after"))continue;
                 var body=new StackPanel();if(!string.IsNullOrWhiteSpace(message.Text))body.Children.Add(message.Role=="assistant"?AssistantMarkdown.Render(message.Text):UI.Text(message.Text,13));
                 if(message.Attachments!=null)foreach(var file in message.Attachments)body.Children.Add(new AssistantAttachmentView(ai,file));FrameworkElement text=body;text.Margin=message.Role=="user"?new Thickness(12,9,12,9):new Thickness(2,10,2,10);
-                var menu=new ContextMenu();var copy=new MenuItem{Header="Copy message"};copy.Click+=(_,_)=>{try{Clipboard.SetText(message.Text);}catch{}};menu.Items.Add(copy);text.ContextMenu=menu;
+                var menu=new ContextMenu();var copy=new MenuItem{Header=Localization.Text("Copy message")};copy.Click+=(_,_)=>{try{Clipboard.SetText(message.Text);}catch{}};menu.Items.Add(copy);text.ContextMenu=menu;
                 var bubble=new Border{Child=text,CornerRadius=new(12),Background=Brushes.Transparent,Margin=new(message.Role=="user"?42:0,3,message.Role=="user"?0:12,5)};if(message.Role=="user")bubble.SetResourceReference(Border.BackgroundProperty,"ControlFill");messages.Children.Add(bubble);
                 if(IsLoaded && !app.Settings.ReduceMotion && !restoring){bubble.Opacity=0;Motion.Fade(bubble,1,180);}
             }

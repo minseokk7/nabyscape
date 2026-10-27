@@ -13,7 +13,7 @@ public sealed partial class OverlayWindow
 {
     private readonly AudioMixer audioMixer=new();
     private readonly StackPanel mixerRows=new();
-    private readonly TextBlock mixerStatus=UI.Text("Open mixer to load audio devices.",11,UI.Muted);
+    private readonly TextBlock mixerStatus=UI.Text(Localization.Text("Open mixer to load audio devices."),11,UI.Muted);
     private DateTime mixerReadAt=DateTime.MinValue;
     private bool classicMixerOpen;
     private MixerScope mixerScope=MixerScope.Apps;
@@ -44,10 +44,10 @@ public sealed partial class OverlayWindow
         var panel=new StackPanel();
         var header=new DockPanel{Margin=new(0,0,0,12)};
         var back=MixerButton(app.Settings.CompactLayout?"Back to media":"Back to widgets",CloseMixer);DockPanel.SetDock(back,Dock.Left);header.Children.Add(back);
-        var title=UI.Heading("Audio mixer",16);title.Margin=new(12,0,0,0);header.Children.Add(title);panel.Children.Add(header);
+        var title=UI.Heading(Localization.Text("Audio mixer"),16);title.Margin=new(12,0,0,0);header.Children.Add(title);panel.Children.Add(header);
         mixerStatus.Margin=new(0,8,0,12);panel.Children.Add(mixerStatus);
         var scopes=new Grid{Margin=new(0,0,0,12)};scopes.ColumnDefinitions.Add(new());scopes.ColumnDefinitions.Add(new());
-        mixerAppsTab=UI.Button("Apps",()=>ChooseMixerScope(MixerScope.Apps));mixerOutputsTab=UI.Button("Outputs",()=>ChooseMixerScope(MixerScope.Outputs));UI.Named(mixerAppsTab,"Show app volumes");UI.Named(mixerOutputsTab,"Show output volumes");
+        mixerAppsTab=UI.Button(Localization.Text("Apps"),()=>ChooseMixerScope(MixerScope.Apps));mixerOutputsTab=UI.Button(Localization.Text("Outputs"),()=>ChooseMixerScope(MixerScope.Outputs));UI.LocalizedName(mixerAppsTab,"Show app volumes");UI.LocalizedName(mixerOutputsTab,"Show output volumes");
         foreach(var button in new[]{mixerAppsTab,mixerOutputsTab}){button.MinHeight=28;button.FontSize=11;button.Padding=new(5);button.Margin=new(0,0,4,0);scopes.Children.Add(button);}Grid.SetColumn(mixerOutputsTab,1);panel.Children.Add(scopes);UpdateMixerTabs();panel.Children.Add(mixerRows);return panel;
     }
 

@@ -32,12 +32,12 @@ public sealed partial class OverlayWindow
     private void BuildFileShelf()
     {
         var p=app.Productivity;shelfSelection.RemoveWhere(path=>!p.Shelf.Any(x=>x.Path.Equals(path,StringComparison.OrdinalIgnoreCase)));
-        var heading=UI.Row(UI.Heading("File shelf",18),UI.Text($"{p.Shelf.Count} / 40",11,UI.Muted));((FrameworkElement)heading.Children[1]).Margin=new(12,0,0,0);
-        var add=UI.Button("Add files…",()=>{var dialog=new Microsoft.Win32.OpenFileDialog{Multiselect=true,Title="Add to file shelf"};if(dialog.ShowDialog(this)==true)MutateUtility(()=>p.AddFiles(dialog.FileNames));});
+        var heading=UI.Row(UI.Heading(Localization.Text("File shelf"),18),UI.Text($"{p.Shelf.Count} / 40",11,UI.Muted));((FrameworkElement)heading.Children[1]).Margin=new(12,0,0,0);
+        var add=UI.Button(Localization.Text("Add files…"),()=>{var dialog=new Microsoft.Win32.OpenFileDialog{Multiselect=true,Title=Localization.Text("Add to file shelf")};if(dialog.ShowDialog(this)==true)MutateUtility(()=>p.AddFiles(dialog.FileNames));});
         add.MinHeight=30;add.Padding=new(10,5,10,5);add.Margin=new(0);add.IsEnabled=p.Shelf.Count<40;
         var more=MinimalWidgets.More("File shelf actions",("Select all",()=>{foreach(var file in p.Shelf.Where(x=>x.Exists))shelfSelection.Add(file.Path);RefreshTools();}),("Clear selection",()=>{shelfSelection.Clear();RefreshTools();}));
         toolsContent.Children.Add(MinimalWidgets.Header(heading,UI.Row(add,more)));
-        var gallery=new TileFlow{MinimumTileWidth=150,Gap=18};var viewport=UI.Scroll(gallery);viewport.Tag="panel-content-scroll";viewport.VerticalScrollBarVisibility=ScrollBarVisibility.Auto;viewport.HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled;viewport.PanningMode=PanningMode.VerticalOnly;viewport.MaxHeight=Math.Clamp((app.Settings.PanelMaxHeight-160)/app.Settings.PanelScale,84,380);UI.Named(viewport,"Shelf files");toolsContent.Children.Add(viewport);
+        var gallery=new TileFlow{MinimumTileWidth=150,Gap=18};var viewport=UI.Scroll(gallery);viewport.Tag="panel-content-scroll";viewport.VerticalScrollBarVisibility=ScrollBarVisibility.Auto;viewport.HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled;viewport.PanningMode=PanningMode.VerticalOnly;viewport.MaxHeight=Math.Clamp((app.Settings.PanelMaxHeight-160)/app.Settings.PanelScale,84,380);UI.LocalizedName(viewport,"Shelf files");toolsContent.Children.Add(viewport);
         shelfViewportThumbnails=new(viewport);
         var count=UI.Text("",10,UI.Muted);void Count()=>count.Text=shelfSelection.Count>0?$"{shelfSelection.Count} selected":"";Count();
         foreach(var item in p.Shelf.ToArray())
@@ -51,7 +51,7 @@ public sealed partial class OverlayWindow
             var tile=new Border{Tag="file-drag",Child=content,Background=Brushes.Transparent,ToolTip=item.Path+"\nDrag out · double-click to open"};UI.Named(tile,"Shelf file "+item.Name);
             var selected=new CheckBox{IsChecked=shelfSelection.Contains(item.Path),IsEnabled=item.Exists,Style=(Style)FindResource("TaskToggle"),VerticalAlignment=VerticalAlignment.Top,HorizontalAlignment=HorizontalAlignment.Left,Margin=new(6),MinHeight=28};UI.Named(selected,"Select "+item.Name);preview.Children.Add(selected);
             selected.Checked+=(_,_)=>{shelfSelection.Add(item.Path);Count();};selected.Unchecked+=(_,_)=>{shelfSelection.Remove(item.Path);Count();};
-            var remove=Icons.Button("x","Unstage "+item.Name,()=>MutateUtility(()=>p.RemoveFile(item.Path)),false,28);remove.Margin=new(6);remove.HorizontalAlignment=HorizontalAlignment.Right;remove.VerticalAlignment=VerticalAlignment.Top;remove.Background=UI.Brush("#E61A1D22");remove.ToolTip="Unstage "+item.Name;preview.Children.Add(remove);MinimalWidgets.Reveal(remove,tile);
+            var remove=Icons.Button("x",Localization.Text("Unstage ")+item.Name,()=>MutateUtility(()=>p.RemoveFile(item.Path)),false,28);remove.Margin=new(6);remove.HorizontalAlignment=HorizontalAlignment.Right;remove.VerticalAlignment=VerticalAlignment.Top;remove.Background=UI.Brush("#E61A1D22");remove.ToolTip="Unstage "+item.Name;preview.Children.Add(remove);MinimalWidgets.Reveal(remove,tile);
             Point? start=null;
             tile.PreviewMouseLeftButtonDown+=(_,e)=>{if(PeekGestureBlocked(e.OriginalSource as DependencyObject))return;start=e.GetPosition(tile);if(e.ClickCount==2){try{ShortcutService.Open(new(){Target=item.Path});}catch(Exception ex){app.Notify("Could not open file",ex.Message);}start=null;e.Handled=true;}};
             tile.PreviewMouseMove+=(_,e)=>
@@ -63,7 +63,7 @@ public sealed partial class OverlayWindow
             };
             gallery.Children.Add(tile);shelfViewportThumbnails.Add(tile,image,pixels=>ShelfThumbnail(item.Path,pixels));
         }
-        if(p.Shelf.Count==0){var empty=new StackPanel{Margin=new(0,18,0,22)};var icon=ToolIcon("files");icon.Width=icon.Height=34;icon.Opacity=.6;empty.Children.Add(icon);var text=UI.Text("Drop files here or add files above.",12,UI.Muted);text.HorizontalAlignment=HorizontalAlignment.Center;text.Margin=new(0,12,0,0);empty.Children.Add(text);gallery.Children.Add(empty);}
-        var footer=new DockPanel{Margin=new(0,18,0,0)};DockPanel.SetDock(count,Dock.Right);footer.Children.Add(count);footer.Children.Add(UI.Text("↗  Drop files or drag out",10,UI.Muted));toolsContent.Children.Add(footer);
+        if(p.Shelf.Count==0){var empty=new StackPanel{Margin=new(0,18,0,22)};var icon=ToolIcon("files");icon.Width=icon.Height=34;icon.Opacity=.6;empty.Children.Add(icon);var text=UI.Text(Localization.Text("Drop files here or add files above."),12,UI.Muted);text.HorizontalAlignment=HorizontalAlignment.Center;text.Margin=new(0,12,0,0);empty.Children.Add(text);gallery.Children.Add(empty);}
+        var footer=new DockPanel{Margin=new(0,18,0,0)};DockPanel.SetDock(count,Dock.Right);footer.Children.Add(count);footer.Children.Add(UI.Text(Localization.Text("↗  Drop files or drag out"),10,UI.Muted));toolsContent.Children.Add(footer);
     }
 }

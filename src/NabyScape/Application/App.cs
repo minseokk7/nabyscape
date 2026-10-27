@@ -31,14 +31,14 @@ public sealed partial class App : Application
         int epoch=downloadEpoch;Dispatcher.BeginInvoke(()=>
         {
             if(epoch!=downloadEpoch || !Settings.DownloadsEnabled || Downloads?.Running!=true || paths.Length==0 || !string.Equals(Path.GetDirectoryName(paths[0]),Downloads.Folder,StringComparison.OrdinalIgnoreCase))return;
-            PostNotice(new("downloads",paths.Length==1?"Download ready":$"{paths.Length} downloads ready","Folder arrival inferred · drag originals or add to shelf",paths));
+            PostNotice(new("downloads",paths.Length==1?Localization.Text("Download ready"):Localization.Format("{0} downloads ready",paths.Length),Localization.Text("Folder arrival inferred · drag originals or add to shelf"),paths));
         });
     }
     private void DownloadFailed(string error)
     {
         int epoch=downloadEpoch;Dispatcher.BeginInvoke(()=>
         {
-            if(epoch==downloadEpoch && Settings.DownloadsEnabled)Notify("Downloads unavailable",error);
+            if(epoch==downloadEpoch && Settings.DownloadsEnabled)Notify(Localization.Text("Downloads unavailable"),error);
         });
     }
     internal void OpenNotifications()=>overlay?.OpenNotice(true);
@@ -48,7 +48,7 @@ public sealed partial class App : Application
         string key=Settings.DownloadsEnabled+"|"+Settings.DownloadsFolder;if(key==downloadConfiguration)return;downloadConfiguration=key;
         Downloads?.Configure(false,"");downloadEpoch++;
         try{Downloads?.Configure(Settings.DownloadsEnabled,Settings.DownloadsEnabled?(Settings.DownloadsFolder.Length==0?DownloadArrivals.KnownFolder():Settings.DownloadsFolder):"");}
-        catch(Exception ex){Notify("Downloads unavailable",ex.Message);}
+        catch(Exception ex){Notify(Localization.Text("Downloads unavailable"),ex.Message);}
     }
     internal void PostNotice(InternalNotice notice)
     {
@@ -61,16 +61,16 @@ public sealed partial class App : Application
     public SessionState Session { get; private set; }=null!;
     public MediaService Media { get; private set; }=null!;
     public BrightnessService Brightness { get; private set; }=null!;
-    public string BrightnessStatus=>Brightness?.Status??"Brightness feedback unavailable";
+    public string BrightnessStatus=>Brightness?.Status??Localization.Text("Brightness feedback unavailable");
     public AudioService Audio { get; private set; }=null!;
     internal AmbientAudioDriver AmbientAudio {get;private set;}=null!;
     public ProductivityService Productivity {get;private set;}=null!;
     internal DetachedPreviewManager Previews {get;private set;}=null!;
     public CalendarService Calendar {get;private set;}=null!;
     public KeepAwakeService Awake {get;private set;}=null!;
-    public string HotkeyStatus=>!Settings.HotkeyEnabled?"Hotkey off":overlay?.HotkeyError.Length>0?overlay.HotkeyError:$"Active · {Settings.HotkeyModifiers}+{Settings.HotkeyKey}";
-    public string VisibilityHotkeyStatus=>!Settings.VisibilityHotkeyEnabled?"Visibility shortcut off":overlay?.VisibilityHotkeyError.Length>0?overlay.VisibilityHotkeyError:$"Hide / show · {Settings.VisibilityHotkeyModifiers}+{Settings.VisibilityHotkeyKey}";
-    public string TuckHotkeyStatus=>!Settings.TuckHotkeyEnabled?"Tuck shortcut off":overlay?.TuckHotkeyError.Length>0?overlay.TuckHotkeyError:$"Tuck / return to automatic · {Settings.TuckHotkeyModifiers}+{Settings.TuckHotkeyKey}";
+    public string HotkeyStatus=>!Settings.HotkeyEnabled?Localization.Text("Hotkey off"):overlay?.HotkeyError.Length>0?overlay.HotkeyError:Localization.Format("Active · {0}+{1}",Settings.HotkeyModifiers,Settings.HotkeyKey);
+    public string VisibilityHotkeyStatus=>!Settings.VisibilityHotkeyEnabled?Localization.Text("Visibility shortcut off"):overlay?.VisibilityHotkeyError.Length>0?overlay.VisibilityHotkeyError:Localization.Format("Hide / show · {0}+{1}",Settings.VisibilityHotkeyModifiers,Settings.VisibilityHotkeyKey);
+    public string TuckHotkeyStatus=>!Settings.TuckHotkeyEnabled?Localization.Text("Tuck shortcut off"):overlay?.TuckHotkeyError.Length>0?overlay.TuckHotkeyError:Localization.Format("Tuck / return to automatic · {0}+{1}",Settings.TuckHotkeyModifiers,Settings.TuckHotkeyKey);
     internal void FlushPreferenceEditors()=>overlay?.FlushPreferenceEditors();
     // Countdown completions route through the shared notification manager.
     internal void OpenVoice()=>overlay?.OpenFeaturePage("voice");
@@ -120,7 +120,7 @@ public sealed partial class App : Application
         UI.ResourceBrush("Accent",UI.Brush(Settings.Accent));UI.ApplyControlTheme(Settings);
         Motion.Configure(Settings);
         Session=diagnosticPath==null?Store.Load<SessionState>("session"):new SessionState();Session.Timer??=new();Session.Focus??=new();Session.Stopwatch??=new();Session.Stopwatch.Recover();
-        DispatcherUnhandledException+=(_,args)=> { Store.Log(args.Exception);args.Handled=true;Notify("Something went wrong", "The operation failed. Details were saved to errors.log."); };
+        DispatcherUnhandledException+=(_,args)=> { Store.Log(args.Exception);args.Handled=true;Notify(Localization.Text("Something went wrong"), Localization.Text("The operation failed. Details were saved to errors.log.")); };
         Audio=new(Store.Log){SpectrumEnabled=Settings.WaveformSource=="Spectrum"};Media=new(Store.Log);Productivity=new(Store,Store.Log,diagnosticPath==null);Productivity.SetClipboardEnabled(Settings.ClipboardHistory);
         AmbientAudio=new(this);Weather=new(Store);
         Brightness=new();Brightness.Start(diagnosticPath==null && Settings.ReactiveFeedback && Settings.BrightnessFeedback);
@@ -145,7 +145,7 @@ public sealed partial class App : Application
         overlay=new OverlayWindow(this);MainWindow=overlay;StartupTrace.Attach(overlay,e.Args,Store.Log);overlay.Show();Previews=new(this,overlay.OpenFeaturePage);
         Assistant.Changed+=RefreshAssistantTray;if(diagnosticPath==null)Assistant.StartBackgroundFeatures();
         Notifications.Changed+=()=>overlay.RefreshNotice();
-        Updates.UpdateAvailable+=release=>Dispatcher.BeginInvoke(()=>PostNotice(new("updates","Update available",release.Version+" · Open Settings > Application to review.")));
+        Updates.UpdateAvailable+=release=>Dispatcher.BeginInvoke(()=>PostNotice(new("updates",Localization.Text("Update available"),Localization.Format("{0} · Open Settings > Application to review.",release.Version))));
         Updates.DownloadReady+=()=>Dispatcher.BeginInvoke(()=>PostNotice(new("updates",Localization.Text("Update ready to install"),Localization.Text("Open Settings > Application to install and restart when ready."))));
         Downloads=new(DownloadReady,DownloadFailed);
         ConfigureDownloads();
@@ -159,7 +159,7 @@ public sealed partial class App : Application
         tick.Tick+=(_,_)=>
         {
             CheckCountdowns();if(NotificationPolicy.Quiet(Settings,DateTimeOffset.UtcNow) && Notifications.Count>0 && Notifications.Current?.Kind!="preview")Notifications.Clear();else Notifications.Tick(DateTimeOffset.UtcNow,overlay.NotificationBusy,Settings.NotificationSeconds);
-            try{Awake.Tick(DateTimeOffset.UtcNow);}catch(Exception ex){Store.Log(ex);Notify("Could not update keep awake",ex.Message);}
+            try{Awake.Tick(DateTimeOffset.UtcNow);}catch(Exception ex){Store.Log(ex);Notify(Localization.Text("Could not update keep awake"),ex.Message);}
             var changed=RuntimeChange.Clock;
             if(Session.Timer.Running || Session.Focus.Running || Session.Stopwatch.Running)changed|=RuntimeChange.Countdown;
             if(++counter%2==0)
@@ -173,8 +173,8 @@ public sealed partial class App : Application
             PublishUpdate(changed);
         };
         tick.Start();CheckCountdowns();
-        if(Store.Warning!=null) Notify("Settings recovered",Store.Warning);
-        if(!Array.Exists(e.Args,a=>a=="--background")) Notify("NabyScape is ready", "Click the island for your widgets. Right-click the tray icon for settings.");
+        if(Store.Warning!=null) Notify(Localization.Text("Settings recovered"),Store.Warning);
+        if(!Array.Exists(e.Args,a=>a=="--background")) Notify(Localization.Text("NabyScape is ready"), Localization.Text("Click the island for your widgets. Right-click the tray icon for settings."));
         InitializeRuntimeRecovery();
         PrivateDiagnostics.SetServiceState(DiagnosticService.Application,DiagnosticServiceState.Ready);
         PrivateDiagnostics.Record(DiagnosticStage.Application,DiagnosticCode.Completed,startupClock.Elapsed);
@@ -189,11 +189,11 @@ public sealed partial class App : Application
             else if(Array.Exists(e.Args,a=>a=="--settings"))ShowSettings();
         }
     }
-    private void RefreshAssistantTray(){PrivateDiagnostics.SetServiceState(DiagnosticService.Assistant,!Assistant.Options.Enabled?DiagnosticServiceState.Disabled:Assistant.State==AssistantState.Error?DiagnosticServiceState.Failed:Assistant.Busy?DiagnosticServiceState.Busy:DiagnosticServiceState.Ready);if(tray!=null)tray.Text=Assistant.VoiceConnected?"NabyScape · Voice microphone on":Assistant.WakeListening?"NabyScape · Wake microphone on":Assistant.WakeArmed?"NabyScape · Wake word preparing":"NabyScape";}
+    private void RefreshAssistantTray(){PrivateDiagnostics.SetServiceState(DiagnosticService.Assistant,!Assistant.Options.Enabled?DiagnosticServiceState.Disabled:Assistant.State==AssistantState.Error?DiagnosticServiceState.Failed:Assistant.Busy?DiagnosticServiceState.Busy:DiagnosticServiceState.Ready);if(tray!=null)tray.Text=Assistant.VoiceConnected?Localization.Text("NabyScape · Voice microphone on"):Assistant.WakeListening?Localization.Text("NabyScape · Wake microphone on"):Assistant.WakeArmed?Localization.Text("NabyScape · Wake word preparing"):"NabyScape";}
     public void CheckCountdowns()
     {
         var now=DateTimeOffset.UtcNow;bool changed=false;
-        if(Session.Timer.Complete(now)) { changed=true;PostNotice(new("timer","Timer finished","Your timer has finished."));if(Settings.NotifyTimer && !NotificationPolicy.Quiet(Settings,now))CountdownAudio.Play(Settings); }
+        if(Session.Timer.Complete(now)) { changed=true;PostNotice(new("timer",Localization.Text("Timer finished"),Localization.Text("Your timer has finished.")));if(Settings.NotifyTimer && !NotificationPolicy.Quiet(Settings,now))CountdownAudio.Play(Settings); }
         var focusDeadline=Session.Focus.Deadline;
         if(Session.Focus.Complete(now))
         {
@@ -203,23 +203,23 @@ public sealed partial class App : Application
             {
                 // The break starts at the actual work deadline, even across sleep, so a long sleep never starts a fresh break.
                 var end=focusDeadline!.Value.AddMinutes(Settings.BreakMinutes);
-                if(end>now) { Session.Focus.Start((end-now).TotalSeconds,now,"break",preserveRunId:true);Session.Focus.DurationSeconds=Settings.BreakMinutes*60; PostNotice(new("focus","Focus complete","Time for a short break.")); }
-                else { Session.Focus.Reset();PostNotice(new("focus","Focus session complete","Your focus session and break have finished.")); }
+                if(end>now) { Session.Focus.Start((end-now).TotalSeconds,now,"break",preserveRunId:true);Session.Focus.DurationSeconds=Settings.BreakMinutes*60; PostNotice(new("focus",Localization.Text("Focus complete"),Localization.Text("Time for a short break."))); }
+                else { Session.Focus.Reset();PostNotice(new("focus",Localization.Text("Focus session complete"),Localization.Text("Your focus session and break have finished."))); }
             }
-            else { Session.Focus.Reset();PostNotice(new("focus","Break finished","Ready for your next focus session.")); }
+            else { Session.Focus.Reset();PostNotice(new("focus",Localization.Text("Break finished"),Localization.Text("Ready for your next focus session."))); }
             if(Settings.NotifyFocus && !NotificationPolicy.Quiet(Settings,now))CountdownAudio.Play(Settings);
         }
         if(changed) SaveSession();
     }
     internal void OpenMixer()=>overlay?.OpenMixer();
-    public void SaveSession() { try { Session.Stopwatch.Checkpoint();Store.Save("session",Session); } catch(Exception ex) { Store.Log(ex);Notify("Not saved yet", "Could not save the timer state."); } PublishUpdate(RuntimeChange.Countdown); }
+    public void SaveSession() { try { Session.Stopwatch.Checkpoint();Store.Save("session",Session); } catch(Exception ex) { Store.Log(ex);Notify(Localization.Text("Not saved yet"), Localization.Text("Could not save the timer state.")); } PublishUpdate(RuntimeChange.Countdown); }
     internal bool SettingsSaveSucceeded {get;private set;}
     public void ChangeSettings()
     {
         Settings.Normalize();Media.SetEnabled(MediaFeaturesWanted);Brightness.Start(!diagnosticMode && Settings.ReactiveFeedback && Settings.BrightnessFeedback);Audio.SpectrumEnabled=Settings.WaveformSource=="Spectrum";UI.ResourceBrush("Accent",UI.Brush(Settings.Accent));UI.ApplyControlTheme(Settings);Motion.Configure(Settings);
         Productivity?.SetClipboardEnabled(Settings.ClipboardHistory);
         SettingsSaveSucceeded=false;
-        try { Store.Save("settings",Settings);SettingsSaveSucceeded=true; } catch(Exception ex) { Store.Log(ex);Notify("Not saved yet","These settings will apply until you close the app."); }
+        try { Store.Save("settings",Settings);SettingsSaveSucceeded=true; } catch(Exception ex) { Store.Log(ex);Notify(Localization.Text("Not saved yet"),Localization.Text("These settings will apply until you close the app.")); }
         ConfigureDownloads();if(Settings.NotificationDelivery is "Off" or "Windows" || NotificationPolicy.Quiet(Settings,DateTimeOffset.UtcNow))Notifications.Clear();
         Previews?.ApplySettings();SettingsChanged?.Invoke();PublishUpdate(RuntimeChange.Settings);
     }

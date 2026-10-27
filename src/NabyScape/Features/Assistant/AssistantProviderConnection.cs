@@ -10,7 +10,7 @@ internal sealed partial class AssistantProviderSettings
     private CancellationTokenSource? providerRequest;
     private bool providerBusy,loadingProvider,draftPending;
     private Button? cancelConnection;
-    private readonly TextBlock connectionStatus=UI.Text("Not tested yet.",11,UI.Muted);
+    private readonly TextBlock connectionStatus=UI.Text(Localization.Text("Not tested yet."),11,UI.Muted);
     private void InitializeDraftFeedback()
     {
         foreach(var input in new[]{name,url,realtimeUrl,voiceName})input.TextChanged+=(_,_)=>RefreshDraftFeedback();
@@ -22,10 +22,10 @@ internal sealed partial class AssistantProviderSettings
     {
         if(loadingProvider || providerBusy || Selected is not {} saved)return;
         var draft=ReadDraftIdentity();bool changed=key.Password.Length>0 || draft!=ReadSavedIdentity(saved);
-        if(changed)imageCheckStatus.Text="Image support: connection changed. Save and test again.";
-        if(changed){draftPending=true;connectionStatus.Text="Not saved yet · choose Save provider to apply your connection changes. Test connection checks this draft only.";connectionStatus.Foreground=UI.Muted;Feedback(connectionStatus.Text);return;}
+        if(changed)imageCheckStatus.Text=Localization.Text("Image support: connection changed. Save and test again.");
+        if(changed){draftPending=true;connectionStatus.Text=Localization.Text("Not saved yet · choose Save provider to apply your connection changes. Test connection checks this draft only.");connectionStatus.Foreground=UI.Muted;Feedback(connectionStatus.Text);return;}
         if(draftPending){draftPending=false;Feedback("No unsaved connection changes · image input "+(saved.Vision?"On":"Off")+".");}
-        var check=ai.ChatSetupFor(saved);connectionStatus.Text=check.Title+"\n"+check.Detail;connectionStatus.Foreground=check.Verified?UI.Brush("#A9CDBD"):UI.Muted;
+        var check=ai.ChatSetupFor(saved);connectionStatus.Text=Localization.Text(check.Title)+"\n"+Localization.Text(check.Detail);connectionStatus.Foreground=check.Verified?UI.Brush("#A9CDBD"):UI.Muted;
     }
     private (string,string,string,string,bool,bool,string,string,string,string) ReadDraftIdentity()
         =>(name.Text.Trim(),url.Text.Trim(),model.Text.Trim(),protocol.SelectedItem?.ToString()??"",imageInput,imageOutput,realtimeUrl.Text.Trim(),realtimeModel.Text.Trim(),realtimeProtocol.SelectedItem?.ToString()??"",voiceName.Text.Trim());
@@ -34,12 +34,12 @@ internal sealed partial class AssistantProviderSettings
     private void InitializeModelPicker(Panel page)
     {
         VirtualizingPanel.SetIsVirtualizing(model,true);VirtualizingPanel.SetVirtualizationMode(model,VirtualizationMode.Recycling);model.ItemsPanel=new ItemsPanelTemplate(new FrameworkElementFactory(typeof(VirtualizingStackPanel)));
-        model.ToolTip="Paste an exact model ID, or leave empty and open the list to load models from your API. Listing is metadata only; Test connection sends one short request.";
+        model.ToolTip=Localization.Text("Paste an exact model ID, or leave empty and open the list to load models from your API. Listing is metadata only; Test connection sends one short request.");
         model.DropDownOpened+=async(_,_)=>{if(model.Items.Count==0 && !providerBusy){bool open=await LoadModels();if(open)model.IsDropDownOpen=true;}};
         var actions=new WrapPanel();actions.Children.Add(AssistantWindow.Pill("Load model list",()=>_=LoadModels()));
         cancelConnection=AssistantWindow.Pill("Cancel check",CancelProviderRequest);cancelConnection.Visibility=Visibility.Collapsed;actions.Children.Add(cancelConnection);page.Children.Add(actions);
 
-        page.Children.Add(UI.Text("Checking the connection sends one short message and may use provider credits. Your chat history, microphone and screen are not sent.",12,UI.Muted));
+        page.Children.Add(UI.Text(Localization.Text("Checking the connection sends one short message and may use provider credits. Your chat history, microphone and screen are not sent."),12,UI.Muted));
         Unloaded+=(_,_)=>CancelProviderRequest();
     }
     private void SetProviderBusy(bool busy)
@@ -64,7 +64,7 @@ internal sealed partial class AssistantProviderSettings
         return ai.Keys.Read(saved.Id);
     }
     private void ConnectionResult(string text,bool error=false,bool success=false)
-    {connectionStatus.Text=text;connectionStatus.Foreground=error?UI.Brush("#EAB3AD"):success?UI.Brush("#A9CDBD"):UI.Muted;Feedback(text,error);status.Foreground=connectionStatus.Foreground;}
+    {connectionStatus.Text=Localization.Text(text);connectionStatus.Foreground=error?UI.Brush("#EAB3AD"):success?UI.Brush("#A9CDBD"):UI.Muted;Feedback(text,error);status.Foreground=connectionStatus.Foreground;}
     private async Task<bool> LoadModels()
     {
         if(providerBusy)return false;
@@ -75,10 +75,10 @@ internal sealed partial class AssistantProviderSettings
             request=providerRequest=new();request.CancelAfter(TimeSpan.FromSeconds(25));SetProviderBusy(true);ConnectionResult("Loading model IDs from the provider…");
             using var api=new AssistantTransport();var models=await api.Models(candidate,DraftKey(candidate),request.Token);
             if(request!=providerRequest || Selected?.Id!=candidate.Id || url.Text.Trim()!=candidate.BaseUrl)return false;
-            string typed=model.Text,voiceTyped=realtimeModel.Text;model.ItemsSource=models;model.Text=typed;realtimeModel.ItemsSource=models;realtimeModel.Text=voiceTyped;ConnectionResult($"{models.Length} models loaded. Paste an ID or choose one; capabilities depend on the model.");return true;
+            string typed=model.Text,voiceTyped=realtimeModel.Text;model.ItemsSource=models;model.Text=typed;realtimeModel.ItemsSource=models;realtimeModel.Text=voiceTyped;ConnectionResult(Localization.Format("{0} models loaded. Paste an ID or choose one; capabilities depend on the model.",models.Length));return true;
         }
         catch(OperationCanceledException){if(request==providerRequest)ConnectionResult("Model loading cancelled. You can still paste a model ID.",true);return false;}
-        catch(Exception ex){if(request!=providerRequest)return false;ConnectionResult("Could not load models. "+ex.Message+" You can paste the model ID manually.",true);return false;}
+        catch(Exception ex){if(request!=providerRequest)return false;ConnectionResult(Localization.Format("Could not load models. {0} You can paste the model ID manually.",ex.Message),true);return false;}
         finally{if(request==providerRequest){providerRequest=null;SetProviderBusy(false);}request?.Dispose();}
     }
     private async Task<bool> EnsureModel()
@@ -101,11 +101,11 @@ internal sealed partial class AssistantProviderSettings
             using var api=new AssistantTransport();var reply=await api.Complete(candidate,DraftKey(candidate),new[]{new AssistantMessage("user","Reply with OK only. This is a connection check.")},Array.Empty<AssistantTool>(),request.Token);
             if(request!=providerRequest || Selected?.Id!=candidate.Id || url.Text.Trim()!=candidate.BaseUrl)return;
             if(string.IsNullOrWhiteSpace(reply.Text))throw new InvalidOperationException("The API responded but returned no text. Select a text/chat model.");
-            if(savedConnection)ai.RecordConnectionCheck(candidate,true,candidate.Name+" · "+candidate.Model+" returned a chat response.");
-            ConnectionResult("Connected · "+candidate.Model+" returned a chat response. "+(savedConnection?"Saved connection checked.":"These are draft settings. Save the provider, then check its saved connection.")+" Voice and tools were not tested.",success:true);app.Notify("Naby AI connected",candidate.Name+" · Chat model responded successfully.");
+            if(savedConnection)ai.RecordConnectionCheck(candidate,true,Localization.Format("{0} · {1} returned a chat response.",candidate.Name,candidate.Model));
+            ConnectionResult(Localization.Format("Connected · {0} returned a chat response. {1} Voice and tools were not tested.",candidate.Model,Localization.Text(savedConnection?"Saved connection checked.":"These are draft settings. Save the provider, then check its saved connection.")),success:true);app.Notify("Naby AI connected",candidate.Name+" · Chat model responded successfully.");
         }
         catch(OperationCanceledException){if(request==providerRequest){if(savedConnection && candidate!=null)ai.RecordConnectionCheck(candidate,false,"Connection check timed out. Confirm the server is running and check its address and model.");ConnectionResult("Connection check timed out. Check the endpoint, model and server availability.",true);}}
-        catch(Exception ex){if(request!=providerRequest)return;if(savedConnection && candidate!=null)ai.RecordConnectionCheck(candidate,false,ex.Message);ConnectionResult("Connection failed · "+ex.Message,true);app.Notify("Naby AI connection failed",ex.Message);}
+        catch(Exception ex){if(request!=providerRequest)return;if(savedConnection && candidate!=null)ai.RecordConnectionCheck(candidate,false,ex.Message);ConnectionResult(Localization.Format("Connection failed · {0}",ex.Message),true);app.Notify("Naby AI connection failed",ex.Message);}
         finally{if(request==providerRequest){providerRequest=null;SetProviderBusy(false);}request?.Dispose();}
     }
 }

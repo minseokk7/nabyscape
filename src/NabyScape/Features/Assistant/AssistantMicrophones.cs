@@ -55,8 +55,8 @@ internal sealed partial class AssistantProviderSettings
     private FrameworkElement MicrophoneSettings()
     {
         var body=new StackPanel{Margin=new(0,0,0,18)};
-        body.Children.Add(UI.Text("Microphone",14));
-        var input=new ComboBox{MinHeight=38,Margin=new(0,8,0,8)};UI.Named(input,"Input microphone");body.Children.Add(input);
+        body.Children.Add(UI.Text(Localization.Text("Microphone"),14));
+        var input=new ComboBox{MinHeight=38,Margin=new(0,8,0,8)};UI.LocalizedName(input,"Input microphone");body.Children.Add(input);
         var feedback=UI.Text("",11,UI.Muted);Accessibility.Live(feedback);
         bool loading=false;
         void Refresh()
@@ -67,7 +67,7 @@ internal sealed partial class AssistantProviderSettings
                 input.ItemsSource=AssistantMicrophones.List();input.SelectedItem=input.Items.Cast<AssistantMicrophone>().FirstOrDefault(d=>d.Id==ai.Options.MicrophoneId);
                 feedback.Text=input.SelectedItem==null?"Saved microphone unavailable. Reconnect it or choose an input.":"Selected: "+input.SelectedItem+" · used for voice, wake word and audio tests.";
             }
-            catch(Exception){feedback.Text="Could not list microphones. Check Windows sound settings, then refresh.";}
+            catch(Exception){feedback.Text=Localization.Text("Could not list microphones. Check Windows sound settings, then refresh.");}
             finally{loading=false;}
         }
         input.SelectionChanged+=(_,_)=>

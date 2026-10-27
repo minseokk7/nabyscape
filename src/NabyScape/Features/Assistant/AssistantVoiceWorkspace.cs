@@ -35,7 +35,7 @@ internal sealed partial class AssistantProviderSettings
         }
         FrameworkElement Direct(string title,string subtitle,FrameworkElement element)
         {
-            var body=new StackPanel();body.Children.Add(UI.Heading(title,20));var hint=UI.Text(subtitle,13,UI.Muted);hint.Margin=new(0,6,0,18);body.Children.Add(hint);
+            var body=new StackPanel();body.Children.Add(UI.Heading(Localization.Text(title),20));var hint=UI.Text(Localization.Text(subtitle),13,UI.Muted);hint.Margin=new(0,6,0,18);body.Children.Add(hint);
             if(element is Expander expander)
             {
                 // Keep the existing lifecycle and refresh handlers, without a second navigation gate.

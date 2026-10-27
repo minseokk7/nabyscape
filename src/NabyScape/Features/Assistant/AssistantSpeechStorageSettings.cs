@@ -11,18 +11,18 @@ internal sealed partial class AssistantProviderSettings
     private FrameworkElement InstalledSpeechSettings()
     {
         var service=ai.Speech;var body=new StackPanel();
-        body.Children.Add(UI.Text("Remove listening or speaking models you no longer need. Matching download caches are removed too. Shared speech engines stay installed. You can reinstall a model from Automatic setup.",11,UI.Muted));
-        var empty=UI.Text("No downloaded speech models on this PC.",12,UI.Muted);empty.Margin=new(0,12,0,8);body.Children.Add(empty);
+        body.Children.Add(UI.Text(Localization.Text("Remove listening or speaking models you no longer need. Matching download caches are removed too. Shared speech engines stay installed. You can reinstall a model from Automatic setup."),11,UI.Muted));
+        var empty=UI.Text(Localization.Text("No downloaded speech models on this PC."),12,UI.Muted);empty.Margin=new(0,12,0,8);body.Children.Add(empty);
         var result=UI.Text("",11,UI.Muted);Accessibility.Live(result);body.Children.Add(result);
         bool showReinstall=false;
         var sizes=new Dictionary<string,long>();
         var reinstall=AssistantWindow.Pill("Reinstall / choose another model",()=>{OpenVoiceSetup();speechModePicker!.SelectedIndex=1;});reinstall.Visibility=Visibility.Collapsed;body.Children.Add(reinstall);
         var rows=new List<(string Id,bool Tts,Border Row,TextBlock Detail,Button Remove)>();
-        var expander=new Expander{Header="Installed models · manage storage",Content=body,Margin=new(0,14,0,10)};
-        UI.Named(expander,"Installed speech models");
+        var expander=new Expander{Header=Localization.Text("Installed models · manage storage"),Content=body,Margin=new(0,14,0,10)};
+        UI.LocalizedName(expander,"Installed speech models");
         foreach(var model in SpeechCatalog.Asr)Add(model.Id,model.Name,false);
         foreach(var model in SpeechCatalog.Tts.Where(m=>m.Id!="windows"))Add(model.Id,model.Name,true);
-        body.Children.Add(UI.Text("Windows voices are managed in Windows Settings. Model files you imported from another folder stay in their original location and are not deleted here.",10,UI.Muted));
+        body.Children.Add(UI.Text(Localization.Text("Windows voices are managed in Windows Settings. Model files you imported from another folder stay in their original location and are not deleted here."),10,UI.Muted));
         void Add(string id,string name,bool tts)
         {
             var row=new StackPanel();row.Children.Add(UI.Text((tts?"TTS · ":"ASR · ")+name,12));

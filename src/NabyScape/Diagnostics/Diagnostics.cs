@@ -119,6 +119,7 @@ internal static class Diagnostics
         {
 
             overlay.DiagnosticRun=true;app.Settings.SmartActivities=false;
+            if(Environment.GetCommandLineArgs().Contains("--korean-ui-only")){await KoreanUiDiagnostics.Run(app,overlay,directory,Check);return;}
             if(Environment.GetCommandLineArgs().Contains("--closed-lyrics-fallback-only")){await ClosedLyricsFallbackDiagnostics.Run(app,overlay,Check);return;}
             if(Environment.GetCommandLineArgs().Contains("--removed-activities-only")){await RemovedActivitiesDiagnostics.Run(app,overlay,Check);return;}
             if(Environment.GetCommandLineArgs().Contains("--assistant-transform-only")){await AssistantTransformDiagnostics.Run(app,overlay,directory,Check);return;}

@@ -31,8 +31,8 @@ internal sealed class LyricsView : Grid
         foreach(var text in new[]{current,highlight}){text.FontWeight=FontWeights.SemiBold;text.VerticalAlignment=VerticalAlignment.Center;text.MaxHeight=52;text.TextTrimming=TextTrimming.CharacterEllipsis;}
         highlight.IsHitTestVisible=false;highlight.Clip=sweep;line.Children.Add(current);line.Children.Add(highlight);
         Children.Add(previous);SetRow(line,1);Children.Add(line);SetRow(next,2);Children.Add(next);
-        var footer=new DockPanel();retry=UI.Button("Retry lyrics",()=>{app.Lyrics.Retry();Refresh();});retry.Content="Retry";retry.MinHeight=22;retry.FontSize=9;retry.Padding=new(4,0,4,0);retry.Margin=new(6,0,0,0);retry.Background=Brushes.Transparent;DockPanel.SetDock(retry,Dock.Right);footer.Children.Add(retry);
-        var local=UI.Button("Load local timed lyrics",()=>{credit.Text=LyricsFiles.Import(app,Window.GetWindow(this));});local.Content="Local LRC…";local.MinHeight=22;local.FontSize=9;local.Padding=new(4,0,4,0);local.Margin=new(6,0,0,0);local.Background=Brushes.Transparent;DockPanel.SetDock(local,Dock.Right);footer.Children.Add(local);footer.Children.Add(credit);SetRow(footer,3);Children.Add(footer);
+        var footer=new DockPanel();retry=UI.Button(Localization.Text("Retry lyrics"),()=>{app.Lyrics.Retry();Refresh();});retry.Content=Localization.Text("Retry");retry.MinHeight=22;retry.FontSize=9;retry.Padding=new(4,0,4,0);retry.Margin=new(6,0,0,0);retry.Background=Brushes.Transparent;DockPanel.SetDock(retry,Dock.Right);footer.Children.Add(retry);
+        var local=UI.Button(Localization.Text("Load local timed lyrics"),()=>{credit.Text=LyricsFiles.Import(app,Window.GetWindow(this));});local.Content=Localization.Text("Local LRC…");local.MinHeight=22;local.FontSize=9;local.Padding=new(4,0,4,0);local.Margin=new(6,0,0,0);local.Background=Brushes.Transparent;DockPanel.SetDock(local,Dock.Right);footer.Children.Add(local);footer.Children.Add(credit);SetRow(footer,3);Children.Add(footer);
         Loaded+=(_,_)=>Attach();Unloaded+=(_,_)=>Detach();IsVisibleChanged+=(_,_)=>{if(IsVisible)Attach();else Detach();};
         tick.Tick+=(_,_)=>Paint();
     }
@@ -57,10 +57,10 @@ internal sealed class LyricsView : Grid
     {
         if(!attached || !ElementVisibility.InViewport(this)){tick.Stop();return;}var result=fixture?.Result??app.Lyrics.Result;var lines=result.Lines;var position=app.Media.Timeline();double at=(fixture?.At??position.elapsed)+app.Settings.LyricsOffset;
         int now=LyricTiming.Index(lines,at);bool change=now!=index || !ReferenceEquals(last,result) || style!=app.Settings.LyricsAnimation;index=now;last=result;style=app.Settings.LyricsAnimation;
-        credit.Text=result.Status;retry.Visibility=lines.Length==0 && !result.Status.StartsWith("Finding")?Visibility.Visible:Visibility.Collapsed;
+        credit.Text=Localization.Text(result.Status);retry.Visibility=lines.Length==0 && !result.Status.StartsWith("Finding")?Visibility.Visible:Visibility.Collapsed;
         if(change)
         {
-            previous.Text=now>0?lines[now-1].Text:"";current.Text=highlight.Text=now>=0?lines[now].Text:lines.Length>0?"♪":"Lyrics";next.Text=now+1<lines.Length?lines[now+1].Text:"";
+            previous.Text=now>0?lines[now-1].Text:"";current.Text=highlight.Text=now>=0?lines[now].Text:lines.Length>0?"♪":Localization.Text("Lyrics");next.Text=now+1<lines.Length?lines[now+1].Text:"";
             current.Foreground=style=="Karaoke"?UI.Muted:Brushes.White;highlight.Visibility=style=="Karaoke" && now>=0?Visibility.Visible:Visibility.Collapsed;
             if(Motion.Enabled && !app.Settings.ReduceMotion)
             {
@@ -89,7 +89,7 @@ internal static class LyricsFiles
     internal static string Import(App app,Window? owner)
     {
         if(!LyricTiming.CanUse(app.Media))return "Select a music session with track details and a playback timeline first.";
-        var dialog=new Microsoft.Win32.OpenFileDialog{Title="Timed lyrics for the current track",Filter="Timed lyrics (*.lrc)|*.lrc"};if(dialog.ShowDialog(owner)!=true)return "No file chosen.";
+        var dialog=new Microsoft.Win32.OpenFileDialog{Title=Localization.Text("Timed lyrics for the current track"),Filter="Timed lyrics (*.lrc)|*.lrc"};if(dialog.ShowDialog(owner)!=true)return Localization.Text("No file chosen.");
         try
         {
             if(new System.IO.FileInfo(dialog.FileName).Length>512*1024)return "Choose an LRC file under 512 KB.";
@@ -109,7 +109,7 @@ public sealed partial class OverlayWindow
         bool compatible=LyricTiming.CanUse(app.Media);
         bool changed=false;
         if(mediaLyrics!=null){var visible=app.Settings.LyricsEnabled && compatible?Visibility.Visible:Visibility.Collapsed;changed=mediaLyrics.Visibility!=visible;mediaLyrics.Visibility=visible;}
-        if(lyricsButton!=null){lyricsButton.Visibility=compatible?Visibility.Visible:Visibility.Collapsed;lyricsButton.Background=app.Settings.LyricsEnabled?UI.Brush(app.Settings.SelectionFill):Brushes.Transparent;lyricsButton.ToolTip=app.Settings.LyricsEnabled?"Hide lyrics":"Show synced lyrics · looks up track details with LRCLIB";System.Windows.Automation.AutomationProperties.SetItemStatus(lyricsButton,app.Settings.LyricsEnabled?"On":"Off");}
+        if(lyricsButton!=null){lyricsButton.Visibility=compatible?Visibility.Visible:Visibility.Collapsed;lyricsButton.Background=app.Settings.LyricsEnabled?UI.Brush(app.Settings.SelectionFill):Brushes.Transparent;lyricsButton.ToolTip=Localization.Text(app.Settings.LyricsEnabled?"Hide lyrics":"Show synced lyrics · looks up track details with LRCLIB");System.Windows.Automation.AutomationProperties.SetItemStatus(lyricsButton,app.Settings.LyricsEnabled?"On":"Off");}
         if(changed && mediaLyricsLayout?.IsLoaded==true)ResizeToolPanel();
     }
 }
