@@ -499,4 +499,3 @@ internal static class LocalizationKoreanFeaturesCatalog
             ["Focus · {0} min"] = "집중 · {0}분",
         };
 }
-
