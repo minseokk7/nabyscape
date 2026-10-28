@@ -8,6 +8,8 @@ internal static class LocalizationKoreanSharedCatalog
     internal static readonly IReadOnlyDictionary<string, string> Entries =
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            ["Exclude browser media sessions"] = "브라우저 미디어 감지 제외",
+            ["Exclude browsers from music detection, the source picker, lyrics and dock media activity. Unknown hashed session identities are excluded too. Music apps with identifiable sessions remain available; browser playback is not stopped."] = "브라우저를 음악 감지, 재생 앱 목록, 가사 및 독의 미디어 활동에서 제외합니다. 해시 형태의 알 수 없는 세션도 제외됩니다. 식별 가능한 음악 앱은 계속 사용할 수 있으며 브라우저 재생을 중지하지 않습니다.",
             ["min"] = "분",
             ["+5 min"] = "+5분",
             ["Detach"] = "분리",

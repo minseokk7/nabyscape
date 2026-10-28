@@ -5,6 +5,7 @@ namespace NabyScape;
 public sealed partial class Settings
 {
     public bool BrowserMediaPreviews {get;set;}=true;
+    public bool ExcludeBrowserMedia {get;set;}
     public bool DockUnlocked {get;set;}
     public bool PanelAutoHeight {get;set;}=true;
     public string WaveformSource {get;set;}="Spectrum";

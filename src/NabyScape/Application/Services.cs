@@ -37,6 +37,8 @@ public sealed class MediaService : IDisposable
     private bool disposed;
     private int generation,managerGeneration;
     private bool enabled=true,managerInitializing;
+    private bool excludeBrowserMedia;
+    internal bool BrowserMediaExcluded=>excludeBrowserMedia;
     private string artworkKey="";
     private long timelineStamp;
     private (double elapsed,double duration) timelineSample;
@@ -64,6 +66,14 @@ public sealed class MediaService : IDisposable
     public bool CanSeek { get; private set; }
     public MediaService(Action<Exception> log)
     { dispatcher=System.Windows.Threading.Dispatcher.CurrentDispatcher; this.log=log; }
+    internal void ConfigureBrowserExclusion(bool value)
+    {
+        if(excludeBrowserMedia==value)return;
+        excludeBrowserMedia=value;
+        if(!DiagnosticFixture)Reload();
+    }
+    private bool SessionAllowed(GlobalSystemMediaTransportControlsSession session)
+        =>MediaPreviewPolicy.AllowSession(excludeBrowserMedia,session.SourceAppUserModelId,excludeBrowserMedia?SessionName(session):null);
     internal void SetEnabled(bool value)
     {
         // Deterministic diagnostic playback must not be overwritten by the user's
@@ -93,7 +103,7 @@ public sealed class MediaService : IDisposable
     private void Reload()
     {
         if(disposed || !enabled || manager==null) return;
-        Sessions=manager.GetSessions().ToList();
+        Sessions=manager.GetSessions().Where(SessionAllowed).ToList();
         ApplySelection(selected?.SourceAppUserModelId);
     }
     private void ApplySelection(string? previous=null)
@@ -110,6 +120,7 @@ public sealed class MediaService : IDisposable
     public void Select(GlobalSystemMediaTransportControlsSession? session,bool manual=true)
     {
         if(disposed) return;
+        if(session!=null && !SessionAllowed(session)){ApplySelection();return;}
         if(manual)sourceSelection.Select(session?.SourceAppUserModelId);
         if(ReferenceEquals(selected,session)){if(session==null)_=Refresh();else Changed?.Invoke();return;}
         if(selected!=null) { selected.MediaPropertiesChanged-=PropertiesChanged; selected.PlaybackInfoChanged-=PlaybackChanged;selected.TimelinePropertiesChanged-=TimelineChanged; }

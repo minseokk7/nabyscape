@@ -53,6 +53,25 @@ internal static class MediaExperienceTests
         });
         test("Browser auto-preview switch leaves Spotify and manual playback policy intact",()=>
         {var s=new Settings{BrowserMediaPreviews=false};Assert(!MediaPreviewPolicy.AllowAutomatic(s,"chrome.exe") && !MediaPreviewPolicy.AllowAutomatic(s,"Microsoft.MSEdge_8weky") && !MediaPreviewPolicy.AllowAutomatic(s,"58F7597A8562782A") && MediaPreviewPolicy.AllowAutomatic(s,"Spotify.exe"));s.BrowserMediaPreviews=true;Assert(MediaPreviewPolicy.AllowAutomatic(s,"chrome.exe"));});
+        test("Browser exclusion rejects browsers and opaque identities while preserving music apps",()=>
+        {
+            foreach(string source in new[]{"chrome.exe","Microsoft.MSEdge_8weky","firefox.exe","brave.exe","opera.exe","vivaldi.exe","Arc.exe","Aside.exe","zen.exe","58F7597A8562782A","8e84ae57-22ff-4526-a705-a6249c1f5e60"})
+                Assert(!MediaPreviewPolicy.AllowSession(true,source) && MediaPreviewPolicy.AllowSession(false,source));
+            Assert(!MediaPreviewPolicy.AllowSession(true,"com.vendor.player","Google Chrome") && !MediaPreviewPolicy.AllowSession(true,"com.vendor.player","Microsoft Edge"));
+            foreach(string source in new[]{"Spotify.exe","AppleMusic.exe","vlc.exe","Music.UI.exe"})Assert(MediaPreviewPolicy.AllowSession(true,source));
+            Assert(!new Settings().ExcludeBrowserMedia);
+        });
+        test("Filtered media sessions cannot restore a browser through current previous or pinned selection",()=>
+        {
+            string[] discovered={"chrome.exe","Spotify.exe","firefox.exe"};
+            var sessions=discovered.Where(source=>MediaPreviewPolicy.AllowSession(true,source)).ToArray();
+            var selection=new MediaSourceSelection();
+            Assert(selection.Resolve(sessions,"chrome.exe","firefox.exe")=="Spotify.exe");
+            selection.Select("chrome.exe");Assert(selection.Resolve(sessions,"chrome.exe")=="Spotify.exe" && selection.Id==MediaSourceSelection.AutoId);
+            Assert(selection.Resolve(Array.Empty<string>(),"chrome.exe")==null);
+            selection.Select(null);Assert(selection.Resolve(sessions,"Spotify.exe")==null && selection.IsNone);
+            selection.Select(MediaSourceSelection.AutoId);Assert(selection.Resolve(discovered,"chrome.exe")=="chrome.exe");
+        });
         test("LRC parsing handles multi-stamps, offsets and Unicode without inventing word times",()=>
         {
             var lines=LyricTiming.Parse("[offset:-100]\n[00:01.00][00:03.125]朝のサンプル\n[00:62.00]invalid\n[ar:fixture]\n[00:04.5]Evening sample");

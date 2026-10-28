@@ -56,6 +56,17 @@ internal static class KoreanUiDiagnostics
                 inventories[category] = captions;
                 check("Korean Settings category renders: " + category, window.Title == "NabyScape · 설정" && captions.Any(ContainsHangul));
                 Capture(window, Path.Combine(directory, "ko-settings-" + category + ".png"));
+                if (category == "Audio")
+                {
+                    var exclude = Diagnostics.Descendants(window).OfType<CheckBox>().Single(control => UI.Identity(control) == "Exclude browser media sessions");
+                    exclude.BringIntoView();
+                    exclude.IsChecked = true;
+                    exclude.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    await Task.Delay(400);
+                    check("Browser exclusion toggle configures the media service and persists", app.Settings.ExcludeBrowserMedia && app.Media.BrowserMediaExcluded && app.Store.Load<Settings>("settings").ExcludeBrowserMedia);
+                    window.UpdateLayout();
+                    Capture(window, Path.Combine(directory, "ko-browser-exclusion.png"));
+                }
                 if (category == "Application")
                 {
                     check("Update preferences retain stable IDs in Korean", Diagnostics.Descendants(window).OfType<CheckBox>().Any(control => UI.Identity(control) == "Check automatically once per day") && Diagnostics.Descendants(window).OfType<CheckBox>().Any(control => UI.Identity(control) == "Download updates automatically"));

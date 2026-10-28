@@ -120,5 +120,13 @@ internal static class ProductionFoundationTests
             Assert(settings.UiLanguage=="ko","Korean language did not survive reload.");
             Assert(reopened.Load<ProductivityData>("productivity").Note=="Settings · 내 메모","User content changed during locale reload.");
         });
+        Fixture("Browser exclusion persists and follows audio reset and restore",store=>
+        {
+            var settings=new Settings{ExcludeBrowserMedia=true};store.Save("settings",settings);
+            var reloaded=new Store(store.DirectoryPath).Load<Settings>("settings");reloaded.Normalize();
+            Assert(reloaded.ExcludeBrowserMedia,"Browser exclusion did not survive reload.");
+            PreferenceReset.Reset(store,reloaded,"Audio");Assert(!reloaded.ExcludeBrowserMedia,"Audio reset retained browser exclusion.");
+            PreferenceReset.Restore(store,reloaded);Assert(reloaded.ExcludeBrowserMedia,"Restore lost browser exclusion.");
+        });
     }
 }
